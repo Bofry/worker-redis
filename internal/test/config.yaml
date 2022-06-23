@@ -1,0 +1,9 @@
+
+RedisConsumerGroup: gotestGroup
+RedisConsumerName: gotestConsumer
+RedisMaxInFlight: 8
+RedisMaxPollingTimeout: 10ms
+RedisClaimMinIdleTime: 30s
+RedisIdlingTimeout: 150ms
+RedisClaimSensitivity: 2
+RedisClaimOccurrenceRate: 2
