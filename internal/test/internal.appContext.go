@@ -1,4 +1,4 @@
-package standardtest
+package test
 
 import (
 	"fmt"
@@ -12,6 +12,9 @@ type (
 		Host            *Host
 		Config          *Config
 		ServiceProvider *ServiceProvider
+
+		Component       *MockComponent
+		ComponentRunner *MockComponentRunner
 	}
 
 	Host redis.Worker
@@ -38,6 +41,13 @@ type (
 		*UnhandledMessageHandler    `stream:"?"`
 	}
 )
+
+func (app *App) Init(conf *Config) {
+	fmt.Println("App.Init()")
+
+	app.Component = &MockComponent{}
+	app.ComponentRunner = &MockComponentRunner{prefix: "MockComponentRunner"}
+}
 
 func (provider *ServiceProvider) Init(conf *Config) {
 	fmt.Println("ServiceProvider.Init()")
