@@ -3,6 +3,7 @@ package redis
 import (
 	redis "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/worker-redis/internal"
+	"github.com/Bofry/worker-redis/internal/middleware"
 )
 
 const (
@@ -14,19 +15,32 @@ const (
 )
 
 type (
+	ProducerConfig   = redis.ProducerConfig
+	Producer         = redis.Producer
 	UniversalOptions = redis.UniversalOptions
-	XMessage         = redis.XMessage
-	XStream          = redis.XStream
+	Message          = redis.Message
+	MessageContent   = redis.MessageContent
 
 	AdminClient     = redis.AdminClient
 	Forwarder       = redis.Forwarder
 	ForwarderRunner = redis.ForwarderRunner
-	WorkerContext   = redis.ConsumeContext
+
+	EventEvidence  = middleware.EventEvidence
+	LoggingService = middleware.LoggingService
+	EventLog       = middleware.EventLog
 
 	MessageHandler = internal.MessageHandler
 	Worker         = internal.RedisWorker
+	Context        = internal.Context
+	ReplyCode      = internal.ReplyCode
+
+	ErrorHandler = internal.ErrorHandler
 )
 
-type (
-	RedisErrorHandleProc = internal.RedisErrorHandleProc
-)
+func NewAdminClient(opt *UniversalOptions) (*AdminClient, error) {
+	return redis.NewAdminClient(opt)
+}
+
+func NewForwarder(config *ProducerConfig) (*Forwarder, error) {
+	return redis.NewForwarder(config)
+}

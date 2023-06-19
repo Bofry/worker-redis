@@ -10,7 +10,7 @@ func Startup(app interface{}) *host.Starter {
 		starter = host.Startup(app)
 	)
 
-	host.RegisterHostService(starter, internal.RedisWorkerServiceInstance)
+	host.RegisterHostModule(starter, internal.RedisWorkerModuleInstance)
 
 	return starter
 }

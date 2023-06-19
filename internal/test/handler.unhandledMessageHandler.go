@@ -14,6 +14,6 @@ func (h *UnhandledMessageHandler) Init() {
 	log.Printf("UnhandledMessageHandler.Init()")
 }
 
-func (h *UnhandledMessageHandler) ProcessMessage(ctx *redis.WorkerContext, stream string, message *redis.XMessage) {
-	log.Printf("Unhandled Message on %s: %v\n", stream, message)
+func (h *UnhandledMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
+	log.Printf("Unhandled Message on %s: %v\n", message.Stream, message.XMessage)
 }

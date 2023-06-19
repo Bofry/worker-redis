@@ -2,12 +2,15 @@ package internal
 
 import (
 	"context"
+	"log"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/Bofry/host"
 	redis "github.com/Bofry/lib-redis-stream"
+	"github.com/Bofry/trace"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 var _ host.Host = new(RedisWorker)
@@ -22,10 +25,21 @@ type RedisWorker struct {
 	IdlingTimeout       time.Duration // 若沒有任何訊息時等待多久
 	ClaimSensitivity    int           // Read 時取得的訊息數小於等於 n 的話, 執行 Claim
 	ClaimOccurrenceRate int32         // Read 每執行 n 次後 執行 Claim 1 次
+	AllowCreateGroup    bool          // 自動註冊 consumer group
 
 	consumer *redis.Consumer
 
-	dispatcher *RedisMessageDispatcher
+	logger *log.Logger
+
+	messageDispatcher *MessageDispatcher
+	messageManager    interface{}
+
+	messageHandleService *MessageHandleService
+	messageTracerService *MessageTracerService
+
+	tracerManager *TracerManager
+
+	onErrorEventHandler host.HostOnErrorEventHandler
 
 	wg          sync.WaitGroup
 	mutex       sync.Mutex
@@ -36,10 +50,10 @@ type RedisWorker struct {
 
 func (w *RedisWorker) Start(ctx context.Context) {
 	if w.disposed {
-		logger.Panic("the Worker has been disposed")
+		RedisWorkerLogger.Panic("the Worker has been disposed")
 	}
 	if !w.initialized {
-		logger.Panic("the Worker havn't be initialized yet")
+		RedisWorkerLogger.Panic("the Worker havn't be initialized yet")
 	}
 	if w.running {
 		return
@@ -56,13 +70,14 @@ func (w *RedisWorker) Start(ctx context.Context) {
 	}()
 
 	w.running = true
+	w.messageDispatcher.start(ctx)
 
 	var (
-		streams       = w.dispatcher.Streams()
-		streamOffsets = w.dispatcher.StreamOffsets()
+		streams       = w.messageDispatcher.Streams()
+		streamOffsets = w.messageDispatcher.StreamOffsets()
 	)
 
-	logger.Printf("name [%s] group [%s] listening DB [%d] streams [%s] on address %s\n",
+	RedisWorkerLogger.Printf("name [%s] group [%s] listening DB [%d] streams [%s] on address %s\n",
 		w.ConsumerName,
 		w.ConsumerGroup,
 		w.RedisOption.DB,
@@ -71,25 +86,60 @@ func (w *RedisWorker) Start(ctx context.Context) {
 
 	if len(streamOffsets) > 0 {
 		c := w.consumer
-		err = c.Subscribe(streamOffsets...)
+		err = w.registerGroup(streamOffsets)
 		if err != nil {
-			logger.Panic(err)
+			RedisWorkerLogger.Panic(err)
+		}
+		err = w.messageDispatcher.subscribe(c)
+		if err != nil {
+			RedisWorkerLogger.Panic(err)
 		}
 	}
 }
 
 func (w *RedisWorker) Stop(ctx context.Context) error {
-	logger.Printf("%% Stopping\n")
+	RedisWorkerLogger.Printf("%% Stopping\n")
+
+	w.mutex.Lock()
 	defer func() {
-		logger.Printf("%% Stopped\n")
+		w.running = false
+		w.disposed = true
+		w.mutex.Unlock()
+
+		w.messageDispatcher.stop(ctx)
+
+		RedisWorkerLogger.Printf("%% Stopped\n")
 	}()
 
 	w.consumer.Close()
+	w.wg.Wait()
 	return nil
 }
 
-func (w *RedisWorker) preInit() {
-	w.dispatcher = NewRedisMessageDispatcher()
+func (w *RedisWorker) Logger() *log.Logger {
+	return w.logger
+}
+
+func (w *RedisWorker) alloc() {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	w.tracerManager = NewTraceManager()
+	w.messageHandleService = NewMessageHandleService()
+	w.messageTracerService = &MessageTracerService{
+		TracerManager: w.tracerManager,
+	}
+
+	w.messageDispatcher = &MessageDispatcher{
+		MessageHandleService: w.messageHandleService,
+		MessageTracerService: w.messageTracerService,
+		Router:               make(Router),
+		StreamSet:            make(map[string]StreamOffset),
+		OnHostErrorProc:      w.onHostError,
+	}
+
+	// register TracerManager
+	GlobalTracerManager = w.tracerManager
 }
 
 func (w *RedisWorker) init() {
@@ -103,24 +153,89 @@ func (w *RedisWorker) init() {
 		w.mutex.Unlock()
 	}()
 
+	w.messageTracerService.init(w.messageManager)
+	w.messageDispatcher.init()
 	w.configConsumer()
+}
+
+func (w *RedisWorker) registerGroup(offsets []StreamOffset) error {
+	if !w.AllowCreateGroup {
+		return nil
+	}
+
+	var (
+		admin *redis.AdminClient
+		err   error
+	)
+	w.wg.Add(1)
+	defer w.wg.Done()
+
+	admin, err = redis.NewAdminClient(w.RedisOption)
+	if err != nil {
+		return err
+	}
+	defer admin.Close()
+
+	// XGROUP CREATE AND MKSTREAM
+	for _, readOffset := range offsets {
+		if len(readOffset.Offset) == 0 {
+			readOffset.Offset = redis.StreamLastDeliveredID
+		}
+
+		_, err := admin.CreateConsumerGroupAndStream(readOffset.Stream, w.ConsumerGroup, readOffset.Offset)
+		if err != nil {
+			if !(isRedisBusyGroupError(err)) {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (w *RedisWorker) configConsumer() {
 	instance := &redis.Consumer{
-		Group:                   w.ConsumerGroup,
-		Name:                    w.ConsumerName,
-		RedisOption:             w.RedisOption,
-		MaxInFlight:             w.MaxInFlight,
-		MaxPollingTimeout:       w.MaxPollingTimeout,
-		ClaimMinIdleTime:        w.ClaimMinIdleTime,
-		IdlingTimeout:           w.IdlingTimeout,
-		ClaimSensitivity:        w.ClaimSensitivity,
-		ClaimOccurrenceRate:     w.ClaimOccurrenceRate,
-		ErrorHandler:            w.dispatcher.ProcessRedisError,
-		MessageHandler:          w.dispatcher.ProcessMessage,
-		UnhandledMessageHandler: w.dispatcher.ProcessUnhandledMessage,
+		Group:               w.ConsumerGroup,
+		Name:                w.ConsumerName,
+		RedisOption:         w.RedisOption,
+		MaxInFlight:         w.MaxInFlight,
+		MaxPollingTimeout:   w.MaxPollingTimeout,
+		ClaimMinIdleTime:    w.ClaimMinIdleTime,
+		IdlingTimeout:       w.IdlingTimeout,
+		ClaimSensitivity:    w.ClaimSensitivity,
+		ClaimOccurrenceRate: w.ClaimOccurrenceRate,
+		MessageHandler:      w.receiveMessage,
+		RedisErrorHandler:   w.onHostError,
+		Logger:              w.logger,
 	}
 
 	w.consumer = instance
+}
+
+func (w *RedisWorker) receiveMessage(message *Message) {
+	ctx := &Context{
+		ConsumerGroup:         w.ConsumerGroup,
+		ConsumerName:          w.ConsumerName,
+		logger:                w.logger,
+		invalidMessageHandler: nil, // be determined by MessageDispatcher
+	}
+	w.messageDispatcher.ProcessMessage(ctx, message)
+}
+
+func (w *RedisWorker) onHostError(err error) (disposed bool) {
+	if w.onErrorEventHandler != nil {
+		return w.onErrorEventHandler.OnError(err)
+	}
+	return false
+}
+
+func (w *RedisWorker) setTextMapPropagator(propagator propagation.TextMapPropagator) {
+	w.tracerManager.TextMapPropagator = propagator
+}
+
+func (w *RedisWorker) setTracerProvider(provider *trace.SeverityTracerProvider) {
+	w.tracerManager.TracerProvider = provider
+}
+
+func (w *RedisWorker) setLogger(l *log.Logger) {
+	w.logger = l
 }

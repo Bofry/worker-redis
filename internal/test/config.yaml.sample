@@ -7,3 +7,6 @@ RedisClaimMinIdleTime: 30s
 RedisIdlingTimeout: 150ms
 RedisClaimSensitivity: 2
 RedisClaimOccurrenceRate: 2
+
+jaegerTraceUrl: http://localhost:14268/api/traces
+jaegerQueryUrl: http://localhost:16686/api/traces

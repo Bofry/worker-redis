@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"reflect"
 
 	"github.com/Bofry/worker-redis/internal"
@@ -21,4 +22,16 @@ var (
 type (
 	ConfigureUnhandledMessageHandleProc func(handler internal.MessageHandler)
 	ConfigureStream                     func(stream internal.StreamOffset)
+
+	LoggingService interface {
+		CreateEventLog(ev EventEvidence) EventLog
+		ConfigureLogger(l *log.Logger)
+	}
+
+	EventLog interface {
+		OnError(message *internal.Message, err interface{}, stackTrace []byte)
+		OnProcessMessage(message *internal.Message)
+		OnProcessMessageComplete(message *internal.Message, reply internal.ReplyCode)
+		Flush()
+	}
 )

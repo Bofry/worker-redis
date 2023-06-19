@@ -2,20 +2,20 @@ package middleware
 
 import (
 	"github.com/Bofry/host"
-	"github.com/Bofry/worker-redis/internal"
+	. "github.com/Bofry/worker-redis/internal"
 )
 
 var _ host.Middleware = new(ErrorHandlerMiddleware)
 
 type ErrorHandlerMiddleware struct {
-	Handler internal.RedisErrorHandleProc
+	Handler ErrorHandler
 }
 
-func (m *ErrorHandlerMiddleware) Init(appCtx *host.AppContext) {
+func (m *ErrorHandlerMiddleware) Init(app *host.AppModule) {
 	var (
-		kafkaworker = asRedisWorker(appCtx.Host())
-		preparer    = internal.NewRedisWorkerPreparer(kafkaworker)
+		worker    = asRedisWorker(app.Host())
+		registrar = NewRedisWorkerRegistrar(worker)
 	)
 
-	preparer.RegisterErrorHandler(m.Handler)
+	registrar.SetErrorHandler(m.Handler)
 }

@@ -1,26 +1,47 @@
 package internal
 
-type Router map[string]MessageHandler
+type Router map[string]RouteComponent
 
-func NewRouter() *Router {
-	var router Router = make(map[string]MessageHandler)
-	return &router
+func (r Router) Add(stream string, handler MessageHandler, handlerComponentID string) {
+	r[stream] = RouteComponent{
+		MessageHandler:     handler,
+		HandlerComponentID: handlerComponentID,
+	}
 }
 
-func (r *Router) Add(stream string, handler MessageHandler) {
-	route := *r
-	route[stream] = handler
+func (r Router) Remove(stream string) {
+	delete(r, stream)
 }
 
-func (r *Router) Remove(stream string) {
-	route := *r
-	delete(route, stream)
-}
+func (r Router) Get(stream string) MessageHandler {
+	if r == nil {
+		return nil
+	}
 
-func (r *Router) Get(stream string) MessageHandler {
-	route := *r
-	if v, ok := route[stream]; ok {
-		return v
+	if v, ok := r[stream]; ok {
+		return v.MessageHandler
 	}
 	return nil
+}
+
+func (r Router) Has(stream string) bool {
+	if r == nil {
+		return false
+	}
+
+	if _, ok := r[stream]; ok {
+		return true
+	}
+	return false
+}
+
+func (r Router) FindHandlerComponentID(stream string) string {
+	if r == nil {
+		return ""
+	}
+
+	if v, ok := r[stream]; ok {
+		return v.HandlerComponentID
+	}
+	return ""
 }

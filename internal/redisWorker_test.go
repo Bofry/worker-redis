@@ -39,13 +39,13 @@ func TestRedisWorker(t *testing.T) {
 	}
 
 	handler := new(mockMessageHandler)
-	worker.preInit()
+	worker.alloc()
 	{
-		worker.dispatcher.streams["gotestStream"] = StreamOffset{
+		worker.messageDispatcher.StreamSet["gotestStream"] = StreamOffset{
 			Stream: "gotestStream",
 			Offset: redis.StreamNeverDeliveredOffset,
 		}
-		worker.dispatcher.router.Add("gotestStream", handler)
+		worker.messageDispatcher.Router.Add("gotestStream", handler, "")
 	}
 	worker.init()
 
@@ -67,9 +67,9 @@ type mockMessageHandler struct {
 	msgCnt int32
 }
 
-func (h *mockMessageHandler) ProcessMessage(ctx *ConsumeContext, stream string, message *XMessage) {
-	log.Printf("Message on %s: %v\n", stream, message)
-	ctx.Ack(stream, message.ID)
+func (h *mockMessageHandler) ProcessMessage(ctx *Context, message *Message) {
+	log.Printf("Message on %s: %v\n", message.Stream, message.XMessage)
+	message.Ack()
 
 	atomic.AddInt32(&h.msgCnt, 1)
 }
@@ -106,20 +106,22 @@ func setupTestRedisWorker() error {
 			return err
 		}
 
-		p, err := redis.NewProducer(opt)
+		p, err := redis.NewProducer(&redis.ProducerConfig{
+			UniversalOptions: opt,
+		})
 		if err != nil {
 			return err
 		}
 		defer p.Close()
 
-		_, err = p.Write("gotestStream", redis.StreamAsteriskID, map[string]interface{}{
+		_, err = p.Write("gotestStream", map[string]interface{}{
 			"name": "luffy",
 			"age":  19,
 		})
 		if err != nil {
 			return err
 		}
-		_, err = p.Write("gotestStream", redis.StreamAsteriskID, map[string]interface{}{
+		_, err = p.Write("gotestStream", map[string]interface{}{
 			"name": "nami",
 			"age":  21,
 		})
