@@ -218,6 +218,11 @@ func (w *RedisWorker) receiveMessage(message *Message) {
 		logger:                w.logger,
 		invalidMessageHandler: nil, // be determined by MessageDispatcher
 	}
+
+	// configure nsq.MessageDelegate
+	delegate := NewContextMessageDelegate(ctx)
+	delegate.configure(message)
+
 	w.messageDispatcher.ProcessMessage(ctx, message)
 }
 
