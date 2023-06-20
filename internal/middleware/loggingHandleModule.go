@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"runtime/debug"
 
 	redis "github.com/Bofry/lib-redis-stream"
@@ -71,8 +70,7 @@ func (*LoggingHandleModule) OnInitComplete() {
 // OnStart implements internal.MessageHandleModule.
 func (*LoggingHandleModule) OnStart(ctx context.Context) error {
 	// do nothing
-	// return nil
-	return fmt.Errorf("some errors occurred")
+	return nil
 }
 
 // OnStop implements internal.MessageHandleModule.
