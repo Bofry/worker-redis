@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Bofry/trace"
 	redis "github.com/Bofry/worker-redis"
@@ -17,13 +16,13 @@ type GoTestStreamMessageHandler struct {
 }
 
 func (h *GoTestStreamMessageHandler) Init() {
-	log.Printf("GoTestStreamMessageHandler.Init()")
+	fmt.Println("GoTestStreamMessageHandler.Init()")
 
 	h.counter = new(GoTestStreamMessageCounter)
 }
 
 func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
-	log.Printf("Message on %s: %v\n", message.Stream, message.XMessage)
+	ctx.Logger().Printf("Message on %s: %v\n", message.Stream, message.XMessage)
 
 	sp := trace.SpanFromContext(ctx)
 	sp.Argv(fmt.Sprintf("%+v", message.Values))

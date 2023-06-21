@@ -1,19 +1,19 @@
 package test
 
 import (
-	"log"
+	"fmt"
 
 	redis "github.com/Bofry/worker-redis"
 )
 
-type UnhandledMessageHandler struct {
+type InvalidMessageHandler struct {
 	ServiceProvider *ServiceProvider
 }
 
-func (h *UnhandledMessageHandler) Init() {
-	log.Printf("UnhandledMessageHandler.Init()")
+func (h *InvalidMessageHandler) Init() {
+	fmt.Println("UnhandledMessageHandler.Init()")
 }
 
-func (h *UnhandledMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
-	log.Printf("Unhandled Message on %s: %v\n", message.Stream, message.XMessage)
+func (h *InvalidMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
+	ctx.Logger().Printf("Unhandled Message on %s: %v\n", message.Stream, message.XMessage)
 }

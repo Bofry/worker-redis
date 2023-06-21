@@ -234,11 +234,11 @@ func (w *RedisWorker) onHostError(err error) (disposed bool) {
 }
 
 func (w *RedisWorker) setTextMapPropagator(propagator propagation.TextMapPropagator) {
-	w.tracerManager.TextMapPropagator = propagator
+	w.messageTracerService.textMapPropagator = propagator
 }
 
 func (w *RedisWorker) setTracerProvider(provider *trace.SeverityTracerProvider) {
-	w.tracerManager.TracerProvider = provider
+	w.messageTracerService.tracerProvider = provider
 }
 
 func (w *RedisWorker) setLogger(l *log.Logger) {

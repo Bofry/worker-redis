@@ -85,6 +85,10 @@ func (c *Context) SetValue(key interface{}, value interface{}) {
 	c.values[key] = value
 }
 
+func (c *Context) Logger() *log.Logger {
+	return c.logger
+}
+
 func (c *Context) ThrowInvalidMessageError(message *Message) {
 	GlobalContextHelper.InjectReplyCode(c, ABORT)
 

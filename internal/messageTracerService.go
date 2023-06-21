@@ -17,6 +17,9 @@ type MessageTracerService struct {
 
 	invalidMessageTracer *trace.SeverityTracer
 
+	tracerProvider    *trace.SeverityTracerProvider
+	textMapPropagator propagation.TextMapPropagator
+
 	tracers            map[string]*trace.SeverityTracer
 	tracersInitializer sync.Once
 }
@@ -40,6 +43,13 @@ func (s *MessageTracerService) TextMapPropagator() propagation.TextMapPropagator
 
 func (s *MessageTracerService) init(messageManager interface{}) {
 	if s.Enabled {
+		if s.tracerProvider != nil {
+			s.TracerManager.TracerProvider = s.tracerProvider
+		}
+		if s.textMapPropagator != nil {
+			s.TracerManager.TextMapPropagator = s.textMapPropagator
+		}
+
 		s.makeTracerMap()
 		s.buildTracer(messageManager)
 	}

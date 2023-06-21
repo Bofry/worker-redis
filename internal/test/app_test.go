@@ -33,7 +33,7 @@ var (
 type MessageManager struct {
 	GotestStream  *GoTestStreamMessageHandler `stream:"gotestStream"  offset:"$"`
 	GotestStream2 *GoTestStreamMessageHandler `stream:"gotestStream2"  offset:"$"`
-	Invalid       *UnhandledMessageHandler    `stream:"?"`
+	Invalid       *InvalidMessageHandler      `stream:"?"`
 }
 
 func copyFile(src, dst string) error {
