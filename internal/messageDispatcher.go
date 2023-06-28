@@ -16,8 +16,8 @@ type MessageDispatcher struct {
 
 	OnHostErrorProc OnHostErrorHandler
 
-	ErrorHandler            ErrorHandler
-	UnhandledMessageHandler MessageHandler
+	ErrorHandler          ErrorHandler
+	InvalidMessageHandler MessageHandler
 
 	StreamSet map[string]StreamOffset
 }
@@ -74,8 +74,8 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 		Span:   sp,
 	}
 
-	// set unhandledMessageHandler
-	ctx.invalidMessageHandler = d.UnhandledMessageHandler
+	// set invalidMessageHandler
+	ctx.invalidMessageHandler = d.InvalidMessageHandler
 
 	d.MessageHandleService.ProcessMessage(ctx, message, processingState, new(Recover))
 }

@@ -24,8 +24,8 @@ func (r *RedisWorkerRegistrar) SetErrorHandler(handler ErrorHandler) {
 	r.worker.messageDispatcher.ErrorHandler = handler
 }
 
-func (r *RedisWorkerRegistrar) SetUnhandledMessageHandler(handler MessageHandler) {
-	r.worker.messageDispatcher.UnhandledMessageHandler = handler
+func (r *RedisWorkerRegistrar) SetInvalidMessageHandler(handler MessageHandler) {
+	r.worker.messageDispatcher.InvalidMessageHandler = handler
 }
 
 func (r *RedisWorkerRegistrar) SetMessageManager(messageManager interface{}) {

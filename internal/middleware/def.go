@@ -8,20 +8,21 @@ import (
 )
 
 const (
-	UNHANDLED_MESSAGE_HANDLER_TOPIC_SYMBOL = "?"
+	INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL = "?"
 )
 
 var (
 	typeOfHost           = reflect.TypeOf(internal.RedisWorker{})
 	typeOfMessageHandler = reflect.TypeOf((*internal.MessageHandler)(nil)).Elem()
 
-	TAG_STREAM = "stream"
-	TAG_OFFSET = "offset"
+	TAG_STREAM         = "stream"
+	TAG_OFFSET         = "offset"
+	TAG_OPT_EXPAND_ENV = "@ExpandEnv"
 )
 
 type (
-	ConfigureUnhandledMessageHandleProc func(handler internal.MessageHandler)
-	ConfigureStream                     func(stream internal.StreamOffset)
+	ConfigureInvalidMessageHandleProc func(handler internal.MessageHandler)
+	ConfigureStream                   func(stream internal.StreamOffset)
 
 	LoggingService interface {
 		CreateEventLog(ev EventEvidence) EventLog

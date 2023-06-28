@@ -11,9 +11,9 @@ type InvalidMessageHandler struct {
 }
 
 func (h *InvalidMessageHandler) Init() {
-	fmt.Println("UnhandledMessageHandler.Init()")
+	fmt.Println("InvalidMessageHandler.Init()")
 }
 
 func (h *InvalidMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
-	ctx.Logger().Printf("Unhandled Message on %s: %v\n", message.Stream, message.XMessage)
+	ctx.Logger().Printf("Invalid Message on %s: %v\n", message.Stream, message.XMessage)
 }

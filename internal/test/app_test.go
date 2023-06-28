@@ -31,7 +31,7 @@ var (
 )
 
 type MessageManager struct {
-	GotestStream  *GoTestStreamMessageHandler `stream:"gotestStream"  offset:"$"`
+	GotestStream  *GoTestStreamMessageHandler `stream:"gotestStream"   offset:"$"   @ExpandEnv:"off"`
 	GotestStream2 *GoTestStreamMessageHandler `stream:"gotestStream2"  offset:"$"`
 	Invalid       *InvalidMessageHandler      `stream:"?"`
 }

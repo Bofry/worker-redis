@@ -20,7 +20,7 @@ func (proc MessageHandleProc) ProcessMessage(ctx *Context, message *Message) {
 var _ MessageHandleProc = StopRecursiveForwardMessageHandler
 
 func StopRecursiveForwardMessageHandler(ctx *Context, message *Message) {
-	ctx.logger.Fatal("invalid forward; it might be recursive forward message to unhandledMessageHandler")
+	ctx.logger.Fatal("invalid forward; it might be recursive forward message to invalidMessageHandler")
 }
 
 var (

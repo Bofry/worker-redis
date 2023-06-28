@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/Bofry/host"
@@ -48,6 +49,13 @@ func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Valu
 		offset   = field.Tag().Get(TAG_OFFSET)
 	)
 
+	if !b.isKnownStream(stream) {
+		optExpandEnv := field.Tag().Get(TAG_OPT_EXPAND_ENV)
+		if optExpandEnv != "off" || len(optExpandEnv) == 0 || optExpandEnv == "on" {
+			stream = os.ExpandEnv(stream)
+		}
+	}
+
 	return b.registerRoute(moduleID, stream, offset, rvMessageHandler)
 }
 
@@ -72,8 +80,8 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, rv
 	if isMessageHandler(rv) {
 		handler := asMessageHandler(rv)
 		if handler != nil {
-			if stream == UNHANDLED_MESSAGE_HANDLER_TOPIC_SYMBOL {
-				b.registrar.SetUnhandledMessageHandler(handler)
+			if stream == INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL {
+				b.registrar.SetInvalidMessageHandler(handler)
 			} else {
 				if offset != "-" {
 					b.registrar.RegisterStream(internal.StreamOffset{
@@ -86,4 +94,12 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, rv
 		}
 	}
 	return nil
+}
+
+func (b *MessageManagerBinder) isKnownStream(stream string) bool {
+	switch stream {
+	case INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL:
+		return true
+	}
+	return false
 }
