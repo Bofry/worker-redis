@@ -18,6 +18,9 @@ var (
 	TAG_STREAM         = "stream"
 	TAG_OFFSET         = "offset"
 	TAG_OPT_EXPAND_ENV = "@ExpandEnv"
+
+	NoopLoggingServiceSingleton = NoopLoggingService{}
+	NoopEventLogSingleton       = NoopEventLog(0)
 )
 
 type (

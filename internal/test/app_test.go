@@ -308,14 +308,12 @@ func TestStartup_UseLogging_And_UseTracing(t *testing.T) {
 			redis.UseErrorHandler(func(ctx *redis.Context, message *redis.Message, err interface{}) {
 				t.Logf("catch err: %v", err)
 			}),
-			redis.UseLogging(&MultiLoggerService{
-				LoggingServices: []redis.LoggingService{
-					&LoggingService{},
-					&BlackholeLoggerService{
-						Buffer: &loggingBuffer,
-					},
+			redis.UseLogging(
+				&LoggingService{},
+				&BlackholeLoggerService{
+					Buffer: &loggingBuffer,
 				},
-			}),
+			),
 			redis.UseTracing(true),
 		).
 		ConfigureConfiguration(func(service *config.ConfigurationService) {
