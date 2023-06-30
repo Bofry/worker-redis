@@ -32,12 +32,14 @@ const (
 )
 
 var (
-	typeOfHost               = reflect.TypeOf(RedisWorker{})
-	defaultTracerProvider    = createNoopTracerProvider()
-	defaultTextMapPropagator = createNoopTextMapPropagator()
+	typeOfHost                  = reflect.TypeOf(RedisWorker{})
+	typeOfMessageObserverAffair = reflect.TypeOf((*MessageObserverAffair)(nil)).Elem()
+	defaultTracerProvider       = createNoopTracerProvider()
+	defaultTextMapPropagator    = createNoopTextMapPropagator()
 
-	GlobalTracerManager *TracerManager // be register from NsqWorker
-	GlobalContextHelper ContextHelper  = ContextHelper{}
+	GlobalTracerManager             *TracerManager        // be register from NsqWorker
+	GlobalContextHelper             ContextHelper         = ContextHelper{}
+	GlobalRestrictedMessageDelegate redis.MessageDelegate = RestrictedMessageDelegate(0)
 
 	RedisWorkerModuleInstance = RedisWorkerModule{}
 
@@ -62,6 +64,15 @@ type (
 		OnInitComplete()
 		OnStart(ctx context.Context) error
 		OnStop(ctx context.Context) error
+	}
+
+	MessageObserver interface {
+		OnAck(ctx *Context, message *Message)
+		OnDel(ctx *Context, message *Message)
+	}
+
+	MessageObserverAffair interface {
+		MessageObserverTypes() []reflect.Type
 	}
 
 	MessageHandler interface {

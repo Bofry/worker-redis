@@ -9,20 +9,20 @@ import (
 	"github.com/Bofry/structproto/reflecting"
 )
 
-var _ structproto.StructBinder = new(MessageHandlerBinder)
+var _ structproto.StructBinder = new(MessageObserverBinder)
 
-type MessageHandlerBinder struct {
+type MessageObserverBinder struct {
 	messageHandlerType string
 	components         map[string]reflect.Value
 }
 
 // Init implements structproto.StructBinder.
-func (b *MessageHandlerBinder) Init(context *structproto.StructProtoContext) error {
+func (*MessageObserverBinder) Init(context *structproto.StructProtoContext) error {
 	return nil
 }
 
 // Bind implements structproto.StructBinder.
-func (b *MessageHandlerBinder) Bind(field structproto.FieldInfo, target reflect.Value) error {
+func (b *MessageObserverBinder) Bind(field structproto.FieldInfo, target reflect.Value) error {
 	if v, ok := b.components[field.Name()]; ok {
 		if !target.IsValid() {
 			return fmt.Errorf("specifiec argument 'target' is invalid. cannot bind '%s' to '%s'",
@@ -39,11 +39,11 @@ func (b *MessageHandlerBinder) Bind(field structproto.FieldInfo, target reflect.
 }
 
 // Deinit implements structproto.StructBinder.
-func (b *MessageHandlerBinder) Deinit(context *structproto.StructProtoContext) error {
+func (b *MessageObserverBinder) Deinit(context *structproto.StructProtoContext) error {
 	return b.preformInitMethod(context)
 }
 
-func (b *MessageHandlerBinder) preformInitMethod(context *structproto.StructProtoContext) error {
+func (b *MessageObserverBinder) preformInitMethod(context *structproto.StructProtoContext) error {
 	rv := context.Target()
 	if rv.CanAddr() {
 		rv = rv.Addr()

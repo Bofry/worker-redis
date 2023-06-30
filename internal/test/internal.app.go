@@ -126,9 +126,21 @@ func (app *App) TextMapPropagator() propagation.TextMapPropagator {
 	return trace.GetTextMapPropagator()
 }
 
-func (provider *ServiceProvider) Init(conf *Config) {
+func (p *ServiceProvider) Init(conf *Config) {
 	fmt.Println("ServiceProvider.Init()")
-	provider.ResourceName = "demo resource"
+	p.ResourceName = "demo resource"
+}
+
+func (p *ServiceProvider) TracerProvider() *trace.SeverityTracerProvider {
+	return trace.GetTracerProvider()
+}
+
+func (p *ServiceProvider) TextMapPropagator() propagation.TextMapPropagator {
+	return trace.GetTextMapPropagator()
+}
+
+func (p *ServiceProvider) Logger() *log.Logger {
+	return defaultLogger
 }
 
 func (h *Host) Init(conf *Config) {

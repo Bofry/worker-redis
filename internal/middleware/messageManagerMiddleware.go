@@ -12,28 +12,29 @@ type MessageManagerMiddleware struct {
 	MessageManager interface{}
 }
 
+// Init implements internal.Middleware.
 func (m *MessageManagerMiddleware) Init(app *host.AppModule) {
 	var (
-		kafkaworker = asRedisWorker(app.Host())
-		registrar   = NewRedisWorkerRegistrar(kafkaworker)
+		worker    = asRedisWorker(app.Host())
+		registrar = NewRedisWorkerRegistrar(worker)
 	)
 
-	// register RequestManager offer FasthttpHost processing later.
+	// register MessageManager offer RedisWorker processing later.
 	registrar.SetMessageManager(m.MessageManager)
 
-	// binding MessageManage
+	// binding MessageManager
 	binder := &MessageManagerBinder{
 		registrar: registrar,
 		app:       app,
 	}
 
-	err := m.performBindTopicGateway(m.MessageManager, binder)
+	err := m.bindMessageManager(m.MessageManager, binder)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (m *MessageManagerMiddleware) performBindTopicGateway(target interface{}, binder *MessageManagerBinder) error {
+func (m *MessageManagerMiddleware) bindMessageManager(target interface{}, binder *MessageManagerBinder) error {
 	prototype, err := structproto.Prototypify(target,
 		&structproto.StructProtoResolveOption{
 			TagName:             TAG_STREAM,

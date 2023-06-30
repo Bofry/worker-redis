@@ -10,9 +10,10 @@ import (
 )
 
 type MessageDispatcher struct {
-	MessageHandleService *MessageHandleService
-	MessageTracerService *MessageTracerService
-	Router               Router
+	MessageHandleService   *MessageHandleService
+	MessageTracerService   *MessageTracerService
+	MessageObserverService *MessageObserverService
+	Router                 Router
 
 	OnHostErrorProc OnHostErrorHandler
 

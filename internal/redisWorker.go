@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"log"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -34,8 +35,9 @@ type RedisWorker struct {
 	messageDispatcher *MessageDispatcher
 	messageManager    interface{}
 
-	messageHandleService *MessageHandleService
-	messageTracerService *MessageTracerService
+	messageHandleService   *MessageHandleService
+	messageTracerService   *MessageTracerService
+	messageObserverService *MessageObserverService
 
 	tracerManager *TracerManager
 
@@ -129,13 +131,17 @@ func (w *RedisWorker) alloc() {
 	w.messageTracerService = &MessageTracerService{
 		TracerManager: w.tracerManager,
 	}
+	w.messageObserverService = &MessageObserverService{
+		MessageObservers: make(map[reflect.Type]MessageObserver),
+	}
 
 	w.messageDispatcher = &MessageDispatcher{
-		MessageHandleService: w.messageHandleService,
-		MessageTracerService: w.messageTracerService,
-		Router:               make(Router),
-		StreamSet:            make(map[string]StreamOffset),
-		OnHostErrorProc:      w.onHostError,
+		MessageHandleService:   w.messageHandleService,
+		MessageTracerService:   w.messageTracerService,
+		MessageObserverService: w.messageObserverService,
+		Router:                 make(Router),
+		StreamSet:              make(map[string]StreamOffset),
+		OnHostErrorProc:        w.onHostError,
 	}
 
 	// register TracerManager
@@ -154,6 +160,7 @@ func (w *RedisWorker) init() {
 	}()
 
 	w.messageTracerService.init(w.messageManager)
+	w.messageObserverService.init(w.messageManager)
 	w.messageDispatcher.init()
 	w.configConsumer()
 }

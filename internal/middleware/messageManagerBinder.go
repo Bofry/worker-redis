@@ -19,10 +19,12 @@ type MessageManagerBinder struct {
 	app       *host.AppModule
 }
 
+// Init implements structproto.StructBinder.
 func (b *MessageManagerBinder) Init(context *structproto.StructProtoContext) error {
 	return nil
 }
 
+// Bind implements structproto.StructBinder.
 func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Value) error {
 	if !rv.IsValid() {
 		return fmt.Errorf("specifiec argument 'rv' is invalid")
@@ -37,7 +39,7 @@ func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Valu
 			host.APP_SERVICE_PROVIDER_FIELD: b.app.ServiceProvider(),
 		},
 	}
-	err := b.preformBindMessageHandler(rvMessageHandler, binder)
+	err := b.bindMessageHandler(rvMessageHandler, binder)
 	if err != nil {
 		return err
 	}
@@ -59,11 +61,12 @@ func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Valu
 	return b.registerRoute(moduleID, stream, offset, rvMessageHandler)
 }
 
+// Deinit implements structproto.StructBinder.
 func (b *MessageManagerBinder) Deinit(context *structproto.StructProtoContext) error {
 	return nil
 }
 
-func (b *MessageManagerBinder) preformBindMessageHandler(target reflect.Value, binder *MessageHandlerBinder) error {
+func (b *MessageManagerBinder) bindMessageHandler(target reflect.Value, binder *MessageHandlerBinder) error {
 	prototype, err := structproto.Prototypify(target,
 		&structproto.StructProtoResolveOption{
 			TagResolver: tagresolver.NoneTagResolver,

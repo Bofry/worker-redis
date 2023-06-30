@@ -90,6 +90,8 @@ func (c *Context) Logger() *log.Logger {
 }
 
 func (c *Context) ThrowInvalidMessageError(message *Message) {
+	// FIXME should restrict call this within MessageObserver
+
 	GlobalContextHelper.InjectReplyCode(c, ABORT)
 
 	if c.invalidMessageHandler != nil {
