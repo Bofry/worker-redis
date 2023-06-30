@@ -59,3 +59,7 @@ func (d *ContextMessageDelegate) configure(msg *redis.Message) {
 func (d *ContextMessageDelegate) registerMessageObservers(observers []MessageObserver) {
 	d.messageObserver = CompositeMessageObserver(observers)
 }
+
+func (d *ContextMessageDelegate) unregisterAllMessageObservers() {
+	d.messageObserver = nil
+}

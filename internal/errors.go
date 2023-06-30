@@ -6,6 +6,7 @@ import (
 
 var (
 	_ error = new(StopError)
+	_ error = RestrictedOperationError("")
 )
 
 type StopError struct {
@@ -19,4 +20,12 @@ func (e *StopError) Error() string {
 
 func (e *StopError) Unwrap() error {
 	return e.err
+}
+
+//--------------------------------
+
+type RestrictedOperationError string
+
+func (e RestrictedOperationError) Error() string {
+	return string(e)
 }

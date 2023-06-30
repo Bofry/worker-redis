@@ -1,25 +1,41 @@
 package internal
 
+import "github.com/Bofry/trace"
+
 var _ MessageObserver = CompositeMessageObserver(nil)
 
 type CompositeMessageObserver []MessageObserver
 
 // OnAck implements MessageObserver.
 func (o CompositeMessageObserver) OnAck(ctx *Context, message *Message) {
-	cloned := message.Clone()
-	cloned.Delegate = GlobalRestrictedMessageDelegate
+	clonedMessage := message.Clone()
+	clonedMessage.Delegate = GlobalRestrictedMessageDelegate
+
+	var (
+		sp        = trace.SpanFromContext(ctx)
+		clonedCtx = ctx.clone()
+	)
+	clonedCtx.context = sp.Context()
+	clonedCtx.invalidMessageHandler = RestrictedForwardMessageHandler(RestrictedForwardMessage_InvalidOperation)
 
 	for _, handler := range o {
-		handler.OnAck(ctx, cloned)
+		handler.OnAck(clonedCtx, clonedMessage)
 	}
 }
 
 // OnDel implements MessageObserver.
 func (o CompositeMessageObserver) OnDel(ctx *Context, message *Message) {
-	cloned := message.Clone()
-	cloned.Delegate = GlobalRestrictedMessageDelegate
+	clonedMessage := message.Clone()
+	clonedMessage.Delegate = GlobalRestrictedMessageDelegate
+
+	var (
+		sp        = trace.SpanFromContext(ctx)
+		clonedCtx = ctx.clone()
+	)
+	clonedCtx.context = sp.Context()
+	clonedCtx.invalidMessageHandler = RestrictedForwardMessageHandler(RestrictedForwardMessage_InvalidOperation)
 
 	for _, handler := range o {
-		handler.OnDel(ctx, cloned)
+		handler.OnDel(clonedCtx, clonedMessage)
 	}
 }

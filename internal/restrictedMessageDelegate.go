@@ -8,10 +8,10 @@ type RestrictedMessageDelegate int
 
 // OnAck implements redis.MessageDelegate.
 func (RestrictedMessageDelegate) OnAck(*redis.Message) {
-	panic("restricted method calls on Message.Ack()")
+	panic(RestrictedOperationError("restricted method calls on Message.Ack()"))
 }
 
 // OnDel implements redis.MessageDelegate.
 func (RestrictedMessageDelegate) OnDel(*redis.Message) {
-	panic("restricted method calls on Message.Del()")
+	panic(RestrictedOperationError("restricted method calls on Message.Del()"))
 }

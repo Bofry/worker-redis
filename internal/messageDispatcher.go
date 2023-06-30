@@ -21,6 +21,8 @@ type MessageDispatcher struct {
 	InvalidMessageHandler MessageHandler
 
 	StreamSet map[string]StreamOffset
+
+	invalidMessageHandlerWrapper MessageHandler
 }
 
 func (d *MessageDispatcher) StreamOffsets() []StreamOffset {
@@ -53,15 +55,15 @@ func (d *MessageDispatcher) Streams() []string {
 func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 	// start tracing
 	var (
-		componentID = d.Router.FindHandlerComponentID(message.Stream)
-		carrier     = tracing.NewMessageStateCarrier(&message.Content().State)
+		handlerID = d.Router.FindHandlerComponentID(message.Stream)
+		carrier   = tracing.NewMessageStateCarrier(&message.Content().State)
 
 		spanName string = message.Stream
 		tr       *trace.SeverityTracer
 		sp       *trace.SeveritySpan
 	)
 
-	tr = d.MessageTracerService.Tracer(componentID)
+	tr = d.MessageTracerService.Tracer(handlerID)
 	sp = tr.ExtractWithPropagator(
 		ctx,
 		d.MessageTracerService.TextMapPropagator(),
@@ -76,7 +78,10 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 	}
 
 	// set invalidMessageHandler
-	ctx.invalidMessageHandler = d.InvalidMessageHandler
+	ctx.invalidMessageHandler = d.invalidMessageHandlerWrapper
+
+	// register observer into message
+	d.MessageObserverService.RegisterMessageObservers(message, handlerID)
 
 	d.MessageHandleService.ProcessMessage(ctx, message, processingState, new(Recover))
 }
@@ -163,6 +168,12 @@ func (d *MessageDispatcher) init() {
 	// register the default MessageHandleModule
 	stdMessageHandleModule := NewStdMessageHandleModule(d)
 	d.MessageHandleService.Register(stdMessageHandleModule)
+
+	if d.InvalidMessageHandler != nil {
+		d.invalidMessageHandlerWrapper = &StdInvalidMessageHandler{
+			invalidMessageHandler: d.InvalidMessageHandler,
+		}
+	}
 }
 
 func (d *MessageDispatcher) processError(ctx *Context, message *Message, err interface{}) {

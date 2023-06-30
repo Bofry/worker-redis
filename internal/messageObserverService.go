@@ -13,7 +13,7 @@ type MessageObserverService struct {
 	handlerObserversInitializer sync.Once
 }
 
-func (s *MessageObserverService) InjectMessageObservers(msg *Message, handlerID string) {
+func (s *MessageObserverService) RegisterMessageObservers(msg *Message, handlerID string) {
 	if s.handlerObservers != nil {
 		observers := s.handlerObservers[handlerID]
 		if len(observers) > 0 {
@@ -22,6 +22,13 @@ func (s *MessageObserverService) InjectMessageObservers(msg *Message, handlerID 
 				d.registerMessageObservers(observers)
 			}
 		}
+	}
+}
+
+func (s *MessageObserverService) UnregisterAllMessageObservers(msg *Message) {
+	d, ok := msg.Delegate.(*ContextMessageDelegate)
+	if ok {
+		d.unregisterAllMessageObservers()
 	}
 }
 

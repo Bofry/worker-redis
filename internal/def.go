@@ -31,6 +31,11 @@ const (
 	__reply_code_invalid_text__ = "invalid"
 )
 
+const (
+	RestrictedForwardMessage_InvalidOperation int = 0
+	RestrictedForwardMessage_Recursive        int = 1
+)
+
 var (
 	typeOfHost                  = reflect.TypeOf(RedisWorker{})
 	typeOfMessageObserverAffair = reflect.TypeOf((*MessageObserverAffair)(nil)).Elem()

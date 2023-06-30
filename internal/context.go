@@ -9,20 +9,6 @@ import (
 	"github.com/Bofry/trace"
 )
 
-var _ MessageHandler = new(MessageHandleProc)
-
-type MessageHandleProc func(ctx *Context, message *Message)
-
-func (proc MessageHandleProc) ProcessMessage(ctx *Context, message *Message) {
-	proc(ctx, message)
-}
-
-var _ MessageHandleProc = StopRecursiveForwardMessageHandler
-
-func StopRecursiveForwardMessageHandler(ctx *Context, message *Message) {
-	ctx.logger.Fatal("invalid forward; it might be recursive forward message to invalidMessageHandler")
-}
-
 var (
 	_ context.Context    = new(Context)
 	_ trace.ValueContext = new(Context)
@@ -90,21 +76,18 @@ func (c *Context) Logger() *log.Logger {
 }
 
 func (c *Context) ThrowInvalidMessageError(message *Message) {
-	// FIXME should restrict call this within MessageObserver
-
-	GlobalContextHelper.InjectReplyCode(c, ABORT)
-
 	if c.invalidMessageHandler != nil {
-		var (
-			sp = trace.SpanFromContext(c)
-		)
+		c.invalidMessageHandler.ProcessMessage(c, message)
+	}
+}
 
-		ctx := &Context{
-			logger:                c.logger,
-			values:                c.values,
-			context:               sp.Context(),
-			invalidMessageHandler: MessageHandleProc(StopRecursiveForwardMessageHandler),
-		}
-		c.invalidMessageHandler.ProcessMessage(ctx, message)
+func (c *Context) clone() *Context {
+	return &Context{
+		ConsumerGroup:         c.ConsumerGroup,
+		ConsumerName:          c.ConsumerName,
+		context:               c.context,
+		logger:                c.logger,
+		invalidMessageHandler: c.invalidMessageHandler,
+		values:                c.values,
 	}
 }
