@@ -7,18 +7,18 @@ import (
 var _ LoggingService = new(CompositeLoggingService)
 
 type CompositeLoggingService struct {
-	LoggingServices []LoggingService
+	loggingServices []LoggingService
 }
 
 func NewCompositeLoggingService(services ...LoggingService) *CompositeLoggingService {
 	return &CompositeLoggingService{
-		LoggingServices: services,
+		loggingServices: services,
 	}
 }
 
 // ConfigureLogger implements LoggingService.
 func (s *CompositeLoggingService) ConfigureLogger(l *log.Logger) {
-	for _, svc := range s.LoggingServices {
+	for _, svc := range s.loggingServices {
 		svc.ConfigureLogger(l)
 	}
 }
@@ -26,11 +26,11 @@ func (s *CompositeLoggingService) ConfigureLogger(l *log.Logger) {
 // CreateEventLog implements LoggingService.
 func (s *CompositeLoggingService) CreateEventLog(ev EventEvidence) EventLog {
 	var eventlogs []EventLog
-	for _, svc := range s.LoggingServices {
+	for _, svc := range s.loggingServices {
 		eventlogs = append(eventlogs, svc.CreateEventLog(ev))
 	}
 
 	return CompositeEventLog{
-		EventLogs: eventlogs,
+		eventLogs: eventlogs,
 	}
 }

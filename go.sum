@@ -8,6 +8,8 @@ github.com/Bofry/lib-redis-stream v0.1.1-0.20230619180853-43e91962d781 h1:HmK2Q9
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230619180853-43e91962d781/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230621165344-ea75f854c22b h1:mli4zHzF9pW10f0BX1eFT8xti44Dylork/2sLkpUwqc=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230621165344-ea75f854c22b/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
+github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb h1:tjeS8SxAD45CTU8yqKgAxSQNaML+5ou74Tct/NM1QIo=
+github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/structproto v0.2.0-alpha.20221227043020/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=
 github.com/Bofry/structproto v0.2.0-alpha.20230613095206 h1:/L/2NiPVAE1La6umcWvIGQwAXuYthoU8uQvrmfCc4fg=
 github.com/Bofry/structproto v0.2.0-alpha.20230613095206/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=

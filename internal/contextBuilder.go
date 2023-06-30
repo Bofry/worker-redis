@@ -41,5 +41,11 @@ func (b *ContextBuilder) InvalidMessageHandler(v MessageHandler) *ContextBuilder
 }
 
 func (b *ContextBuilder) Build() *Context {
-	return b.ctx
+	return &Context{
+		ConsumerGroup:         b.ctx.ConsumerGroup,
+		ConsumerName:          b.ctx.ConsumerName,
+		context:               b.ctx.context,
+		logger:                b.ctx.logger,
+		invalidMessageHandler: b.ctx.invalidMessageHandler,
+	}
 }
