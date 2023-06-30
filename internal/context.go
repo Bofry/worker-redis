@@ -48,7 +48,10 @@ func (c *Context) Value(key any) any {
 		return nil
 	}
 	if c.values != nil {
-		return c.values[key]
+		v := c.values[key]
+		if v != nil {
+			return v
+		}
 	}
 	if c.context != nil {
 		return c.context.Value(key)

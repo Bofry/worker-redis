@@ -74,6 +74,7 @@ type (
 	MessageObserver interface {
 		OnAck(ctx *Context, message *Message)
 		OnDel(ctx *Context, message *Message)
+		Type() reflect.Type
 	}
 
 	MessageObserverAffair interface {

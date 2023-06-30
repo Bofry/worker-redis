@@ -3,10 +3,16 @@ package test
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/Bofry/trace"
 	redis "github.com/Bofry/worker-redis"
 	"github.com/Bofry/worker-redis/tracing"
+)
+
+var (
+	_ redis.MessageHandler        = new(GoTestStreamMessageHandler)
+	_ redis.MessageObserverAffair = new(GoTestStreamMessageHandler)
 )
 
 type GoTestStreamMessageHandler struct {
@@ -21,6 +27,7 @@ func (h *GoTestStreamMessageHandler) Init() {
 	h.counter = new(GoTestStreamMessageCounter)
 }
 
+// ProcessMessage implements internal.MessageHandler.
 func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
 	ctx.Logger().Printf("Message on %s: %v\n", message.Stream, message.XMessage)
 
@@ -34,6 +41,13 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 	}
 	h.counter.increase(sp.Context())
 	message.Ack()
+}
+
+// MessageObserverTypes implements internal.MessageObserverAffair.
+func (*GoTestStreamMessageHandler) MessageObserverTypes() []reflect.Type {
+	return []reflect.Type{
+		MessageObserverManager.GoTestStreamMessageObserver.Type(),
+	}
 }
 
 func (h *GoTestStreamMessageHandler) doSomething(ctx context.Context) {

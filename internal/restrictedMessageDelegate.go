@@ -1,6 +1,8 @@
 package internal
 
-import redis "github.com/Bofry/lib-redis-stream"
+import (
+	redis "github.com/Bofry/lib-redis-stream"
+)
 
 var _ redis.MessageDelegate = RestrictedMessageDelegate(0)
 

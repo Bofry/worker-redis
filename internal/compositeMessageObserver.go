@@ -1,6 +1,10 @@
 package internal
 
-import "github.com/Bofry/trace"
+import (
+	"reflect"
+
+	"github.com/Bofry/trace"
+)
 
 var _ MessageObserver = CompositeMessageObserver(nil)
 
@@ -38,4 +42,9 @@ func (o CompositeMessageObserver) OnDel(ctx *Context, message *Message) {
 	for _, handler := range o {
 		handler.OnDel(clonedCtx, clonedMessage)
 	}
+}
+
+// Type implements MessageObserver.
+func (o CompositeMessageObserver) Type() reflect.Type {
+	return nil
 }
