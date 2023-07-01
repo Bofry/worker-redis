@@ -2,6 +2,7 @@ package internal
 
 import (
 	"sync"
+	"sync/atomic"
 
 	redis "github.com/Bofry/lib-redis-stream"
 )
@@ -15,7 +16,8 @@ type ContextMessageDelegate struct {
 
 	messageObserver MessageObserver
 
-	mu sync.Mutex
+	restricted int32
+	mu         sync.Mutex
 }
 
 func NewContextMessageDelegate(ctx *Context) *ContextMessageDelegate {
@@ -26,6 +28,11 @@ func NewContextMessageDelegate(ctx *Context) *ContextMessageDelegate {
 
 // OnAck implements redis.MessageDelegate.
 func (d *ContextMessageDelegate) OnAck(msg *redis.Message) {
+	if d.isRestricted() {
+		GlobalRestrictedMessageDelegate.OnAck(nil)
+		return
+	}
+
 	d.parent.OnAck(msg)
 	GlobalContextHelper.InjectReplyCode(d.ctx, PASS)
 
@@ -37,6 +44,11 @@ func (d *ContextMessageDelegate) OnAck(msg *redis.Message) {
 
 // OnDel implements redis.MessageDelegate.
 func (d *ContextMessageDelegate) OnDel(msg *redis.Message) {
+	if d.isRestricted() {
+		GlobalRestrictedMessageDelegate.OnDel(nil)
+		return
+	}
+
 	d.parent.OnDel(msg)
 
 	// observer
@@ -54,6 +66,18 @@ func (d *ContextMessageDelegate) configure(msg *redis.Message) {
 			msg.Delegate = d
 		}
 	}
+}
+
+func (d *ContextMessageDelegate) isRestricted() bool {
+	return atomic.LoadInt32(&d.restricted) == 1
+}
+
+func (d *ContextMessageDelegate) restrict() {
+	atomic.StoreInt32(&d.restricted, 1)
+}
+
+func (d *ContextMessageDelegate) unrestrict() {
+	atomic.StoreInt32(&d.restricted, 0)
 }
 
 func (d *ContextMessageDelegate) registerMessageObservers(observers []MessageObserver) {

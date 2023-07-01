@@ -35,12 +35,16 @@ func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *red
 		}
 
 		eventLog := m.loggingService.CreateEventLog(evidence)
+		// NOTE restrict call Ack(), Del()
+		internal.GlobalMessageHelper.Restrict(message)
 		eventLog.OnProcessMessage(message)
 
 		recover.
 			Defer(func(err interface{}) {
 				if err != nil {
 					defer func() {
+						// NOTE restrict call Ack(), Del()
+						internal.GlobalMessageHelper.Restrict(message)
 						eventLog.OnError(message, err, debug.Stack())
 						eventLog.Flush()
 					}()
@@ -53,10 +57,14 @@ func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *red
 					)
 					defer eventLog.Flush()
 
+					// NOTE restrict call Ack(), Del()
+					internal.GlobalMessageHelper.Restrict(message)
 					eventLog.OnProcessMessageComplete(message, reply)
 				}
 			}).
 			Do(func(f internal.Finalizer) {
+				// NOTE allow call Ack(), Del()
+				internal.GlobalMessageHelper.Unrestrict(message)
 				m.successor.ProcessMessage(ctx, message, state, recover)
 			})
 	}

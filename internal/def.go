@@ -45,6 +45,7 @@ var (
 	GlobalTracerManager             *TracerManager        // be register from NsqWorker
 	GlobalContextHelper             ContextHelper         = ContextHelper{}
 	GlobalRestrictedMessageDelegate redis.MessageDelegate = RestrictedMessageDelegate(0)
+	GlobalMessageHelper             MessageHelper         = MessageHelper{}
 
 	RedisWorkerModuleInstance = RedisWorkerModule{}
 
