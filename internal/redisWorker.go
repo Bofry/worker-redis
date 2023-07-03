@@ -145,7 +145,7 @@ func (w *RedisWorker) alloc() {
 	}
 
 	// register TracerManager
-	GlobalTracerManager = w.tracerManager
+	SetTracerManager(w.tracerManager)
 }
 
 func (w *RedisWorker) init() {

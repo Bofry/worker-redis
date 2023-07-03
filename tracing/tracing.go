@@ -6,5 +6,5 @@ import (
 )
 
 func GetTracer(v interface{}) *trace.SeverityTracer {
-	return internal.GlobalTracerManager.GenerateManagedTracer(v)
+	return internal.GetTracerManager().GenerateManagedTracer(v)
 }

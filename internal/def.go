@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sync/atomic"
 
 	redis "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
@@ -42,7 +43,8 @@ var (
 	defaultTracerProvider       = createNoopTracerProvider()
 	defaultTextMapPropagator    = createNoopTextMapPropagator()
 
-	GlobalTracerManager             *TracerManager        // be register from NsqWorker
+	globalTracerManager = defaultTracerManager()
+
 	GlobalContextHelper             ContextHelper         = ContextHelper{}
 	GlobalRestrictedMessageDelegate redis.MessageDelegate = RestrictedMessageDelegate(0)
 	GlobalMessageHelper             MessageHelper         = MessageHelper{}
@@ -54,6 +56,10 @@ var (
 
 type (
 	ctxReplyKeyType int
+
+	tracerManagerHolder struct {
+		v *TracerManager
+	}
 
 	UniversalOptions = redis.UniversalOptions
 	UniversalClient  = redis.UniversalClient
@@ -101,4 +107,25 @@ func createNoopTracerProvider() *trace.SeverityTracerProvider {
 
 func createNoopTextMapPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator()
+}
+
+func defaultTracerManager() *atomic.Value {
+	v := &atomic.Value{}
+	v.Store(tracerManagerHolder{
+		v: NewTraceManager(),
+	})
+	return v
+}
+
+func GetTracerManager() *TracerManager {
+	return globalTracerManager.Load().(tracerManagerHolder).v
+}
+
+func SetTracerManager(v *TracerManager) {
+	current := GetTracerManager()
+	if current != v {
+		globalTracerManager.Store(tracerManagerHolder{
+			v: v,
+		})
+	}
 }
