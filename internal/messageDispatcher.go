@@ -160,7 +160,7 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 				}
 				return
 			}
-			ctx.ThrowInvalidMessageError(message)
+			ctx.InvalidMessage(message)
 		})
 }
 

@@ -36,7 +36,7 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 
 	if message.Stream == "gotestStream2" {
 		h.doSomething(sp.Context())
-		ctx.ThrowInvalidMessageError(message)
+		ctx.InvalidMessage(message)
 		return
 	}
 	h.counter.increase(sp.Context())

@@ -78,7 +78,7 @@ func (c *Context) Logger() *log.Logger {
 	return c.logger
 }
 
-func (c *Context) ThrowInvalidMessageError(message *Message) {
+func (c *Context) InvalidMessage(message *Message) {
 	if c.invalidMessageHandler != nil {
 		c.invalidMessageHandler.ProcessMessage(c, message)
 	}
