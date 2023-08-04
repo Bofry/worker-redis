@@ -2,6 +2,8 @@ github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2 h1:i/aAyZ9/w86lOJ5B
 github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2/go.mod h1:sLLVdIttoEQ2jxaanmDLiyXPJcjjuqNBR0R+TLa/lZU=
 github.com/Bofry/host v0.1.2-0.20230617170313-4e1ae2c2f732 h1:17YkfHaTFOn9tdz4QNqb4arL7yGU9+k6+cLYU+W2ZaI=
 github.com/Bofry/host v0.1.2-0.20230617170313-4e1ae2c2f732/go.mod h1:zVujvjsU9+jHZKDPqu0ORijxPxhg841enVD6qCm0duU=
+github.com/Bofry/host v0.2.0 h1:AWg+Idnmj53lMcmLSLE8VQJ7J8jBaTovsxh2f7/cSR0=
+github.com/Bofry/host v0.2.0/go.mod h1:VM/PjwzxwTN0OUvzRfbwPG/Gy2ukZgToCJ9ouNsMEHU=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb h1:tjeS8SxAD45CTU8yqKgAxSQNaML+5ou74Tct/NM1QIo=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/structproto v0.2.0-alpha.20221227043020/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=
@@ -9,6 +11,8 @@ github.com/Bofry/structproto v0.2.0-alpha.20230613095206 h1:/L/2NiPVAE1La6umcWvI
 github.com/Bofry/structproto v0.2.0-alpha.20230613095206/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=
 github.com/Bofry/trace v0.0.0-20230609161110-402e44d1ff3f h1:d8hMevHCJJ32jT9+GjBeskne0hpgZbD/TspkHpgma8s=
 github.com/Bofry/trace v0.0.0-20230609161110-402e44d1ff3f/go.mod h1:GAiwGnBex/FjAmqB9ydLPvQth1E6ljJ10hSgS78U+8A=
+github.com/Bofry/trace v0.2.0-alpha.20230703152613 h1:UzN4zpq2+2+E8oIs9GpDFlH/7k6oFIcDX07zmgT8Do8=
+github.com/Bofry/trace v0.2.0-alpha.20230703152613/go.mod h1:GAiwGnBex/FjAmqB9ydLPvQth1E6ljJ10hSgS78U+8A=
 github.com/Bofry/types v0.1.0 h1:lEM+LcPWlC1ByerJlp0cZ4tCCosR9lemVDvu9kATV1Y=
 github.com/Bofry/types v0.1.0/go.mod h1:O0I2TpZ3YfKDgTnJO5zeaX9LO7vtdhGnwbz/oP4cKUw=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=

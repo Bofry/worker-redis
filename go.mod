@@ -4,10 +4,10 @@ go 1.19
 
 require (
 	github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2
-	github.com/Bofry/host v0.1.2-0.20230617170313-4e1ae2c2f732
+	github.com/Bofry/host v0.2.0
 	github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb
 	github.com/Bofry/structproto v0.2.0-alpha.20230613095206
-	github.com/Bofry/trace v0.0.0-20230609161110-402e44d1ff3f
+	github.com/Bofry/trace v0.2.0-alpha.20230703152613
 	github.com/go-redis/redis/v7 v7.4.1
 	github.com/joho/godotenv v1.5.1
 	go.opentelemetry.io/otel v1.16.0
