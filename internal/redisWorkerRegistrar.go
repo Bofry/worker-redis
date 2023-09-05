@@ -40,8 +40,8 @@ func (r *RedisWorkerRegistrar) RegisterStream(streamOffset redis.StreamOffset) {
 	r.worker.messageDispatcher.StreamSet[streamOffset.Stream] = streamOffset
 }
 
-func (r *RedisWorkerRegistrar) AddRouter(stream string, handler MessageHandler, handlerComponentID string) {
-	r.worker.messageDispatcher.Router.Add(stream, handler, handlerComponentID)
+func (r *RedisWorkerRegistrar) AddRouter(stream string, handler MessageHandler, handlerComponentID string, setting *StreamSetting) {
+	r.worker.messageDispatcher.Router.Add(stream, handler, handlerComponentID, setting)
 }
 
 func (r *RedisWorkerRegistrar) RegisterMessageObserver(v MessageObserver) {

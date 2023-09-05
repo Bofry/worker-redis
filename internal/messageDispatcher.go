@@ -56,7 +56,8 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 	// start tracing
 	var (
 		handlerID = d.Router.FindHandlerComponentID(message.Stream)
-		carrier   = tracing.NewMessageStateCarrier(&message.Content().State)
+		dmcOpts   = d.Router.GetRouteComponent(message.Stream).StreamSetting.DecodeMessageContentOption()
+		carrier   = tracing.NewMessageStateCarrier(&message.Content(dmcOpts...).State)
 
 		spanName string = message.Stream
 		tr       *trace.SeverityTracer

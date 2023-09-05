@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	redislib "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
 	redis "github.com/Bofry/worker-redis"
 	"github.com/Bofry/worker-redis/tracing"
@@ -34,10 +35,25 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 	sp := trace.SpanFromContext(ctx)
 	sp.Argv(fmt.Sprintf("%+v", message.Values))
 
-	if message.Stream == "gotestStream2" {
+	switch message.Stream {
+	case "gotestStream2":
 		h.doSomething(sp.Context())
 		ctx.InvalidMessage(message)
 		return
+	case "gotestStream3":
+		var state = make(map[string]interface{})
+		message.Content().State.Visit(func(name string, value interface{}) {
+			state[name] = value
+		})
+		fmt.Printf("%+v\n", state)
+	case "gotestStream4":
+		var state = make(map[string]interface{})
+		message.Content(
+			redislib.WithMessageStateKeyPrefix("mystate:"),
+		).State.Visit(func(name string, value interface{}) {
+			state[name] = value
+		})
+		fmt.Printf("%+v\n", state)
 	}
 	h.counter.increase(sp.Context())
 	message.Ack()

@@ -2,10 +2,16 @@ package internal
 
 type Router map[string]RouteComponent
 
-func (r Router) Add(stream string, handler MessageHandler, handlerComponentID string) {
+func (r Router) Add(stream string, handler MessageHandler, handlerComponentID string, streamSetting *StreamSetting) {
+	var setting = defaultStreamSetting
+	if streamSetting != nil {
+		setting = streamSetting
+	}
+
 	r[stream] = RouteComponent{
 		MessageHandler:     handler,
 		HandlerComponentID: handlerComponentID,
+		StreamSetting:      setting,
 	}
 }
 
@@ -44,4 +50,12 @@ func (r Router) FindHandlerComponentID(stream string) string {
 		return v.HandlerComponentID
 	}
 	return ""
+}
+
+func (r Router) GetRouteComponent(stream string) RouteComponent {
+	if r == nil {
+		return RouteComponent{}
+	}
+
+	return r[stream]
 }

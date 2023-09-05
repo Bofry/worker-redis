@@ -45,7 +45,7 @@ func TestRedisWorker(t *testing.T) {
 			Stream: "gotestStream",
 			Offset: redis.StreamNeverDeliveredOffset,
 		}
-		worker.messageDispatcher.Router.Add("gotestStream", handler, "")
+		worker.messageDispatcher.Router.Add("gotestStream", handler, "", nil)
 	}
 	worker.init()
 

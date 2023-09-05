@@ -49,16 +49,22 @@ func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Valu
 		moduleID = field.IDName()
 		stream   = field.Name()
 		offset   = field.Tag().Get(TAG_OFFSET)
+		setting  = internal.StreamSetting{}
 	)
 
-	if !b.isKnownStream(stream) {
+	if !b.isUnknownStream(stream) {
 		optExpandEnv := field.Tag().Get(TAG_OPT_EXPAND_ENV)
 		if optExpandEnv != "off" || len(optExpandEnv) == 0 || optExpandEnv == "on" {
 			stream = os.ExpandEnv(stream)
 		}
+
+		optMessageStateKeyPrefix, ok := field.Tag().Lookup(TAG_OPT_MESSAGE_STATE_KEY_PREFIX)
+		if ok {
+			setting.MessageStateKeyPrefix = &optMessageStateKeyPrefix
+		}
 	}
 
-	return b.registerRoute(moduleID, stream, offset, rvMessageHandler)
+	return b.registerRoute(moduleID, stream, offset, setting, rvMessageHandler)
 }
 
 // Deinit implements structproto.StructBinder.
@@ -78,7 +84,7 @@ func (b *MessageManagerBinder) bindMessageHandler(target reflect.Value, binder *
 	return prototype.Bind(binder)
 }
 
-func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, rv reflect.Value) error {
+func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, setting internal.StreamSetting, rv reflect.Value) error {
 	// register MessageHandlers
 	if isMessageHandler(rv) {
 		handler := asMessageHandler(rv)
@@ -92,14 +98,14 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, rv
 						Offset: offset,
 					})
 				}
-				b.registrar.AddRouter(stream, handler, moduleID)
+				b.registrar.AddRouter(stream, handler, moduleID, &setting)
 			}
 		}
 	}
 	return nil
 }
 
-func (b *MessageManagerBinder) isKnownStream(stream string) bool {
+func (b *MessageManagerBinder) isUnknownStream(stream string) bool {
 	switch stream {
 	case INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL:
 		return true
