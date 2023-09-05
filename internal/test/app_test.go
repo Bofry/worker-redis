@@ -23,7 +23,8 @@ import (
 )
 
 var (
-	__TEST_REDIS_SERVER string
+	__TEST_REDIS_SERVER     string
+	__TEST_JAEGER_TRACE_URL string
 
 	__ENV_FILE        = ".env"
 	__ENV_FILE_SAMPLE = ".env.sample"
@@ -106,6 +107,7 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 		__TEST_REDIS_SERVER = env["TEST_REDIS_SERVER"]
+		__TEST_JAEGER_TRACE_URL = env["TEST_JAEGER_TRACE_URL"]
 	}
 	{
 		client := goredis.NewClient(&goredis.Options{
@@ -228,7 +230,7 @@ func TestStartup_UseTracing(t *testing.T) {
 	)
 
 	{
-		tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+		tp, err := trace.JaegerProvider(__TEST_JAEGER_TRACE_URL,
 			trace.ServiceName("trace-demo"),
 			trace.Environment("go-test"),
 			trace.Pid(),
