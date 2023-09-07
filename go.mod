@@ -3,10 +3,10 @@ module github.com/Bofry/worker-redis
 go 1.19
 
 require (
-	github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2
-	github.com/Bofry/host v0.2.0
-	github.com/Bofry/lib-redis-stream v0.2.1-0.20230905113306-d5837cdbd060
-	github.com/Bofry/structproto v0.2.0-alpha.20230613095206
+	github.com/Bofry/config v0.2.1
+	github.com/Bofry/host v0.2.1
+	github.com/Bofry/lib-redis-stream v0.2.1
+	github.com/Bofry/structproto v0.2.1
 	github.com/Bofry/trace v0.2.0-alpha.20230703152613
 	github.com/go-redis/redis/v7 v7.4.1
 	github.com/joho/godotenv v1.5.1

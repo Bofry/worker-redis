@@ -1,9 +1,13 @@
 github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2 h1:i/aAyZ9/w86lOJ5BsKuTOipjuIC72qgCd03EtAje5qo=
 github.com/Bofry/config v0.2.1-0.20230123080007-f27e105e05e2/go.mod h1:sLLVdIttoEQ2jxaanmDLiyXPJcjjuqNBR0R+TLa/lZU=
+github.com/Bofry/config v0.2.1 h1:rj40ySi+Ynjrvgx1xLhRtxhb/JFqF2diy4i3khwa2l8=
+github.com/Bofry/config v0.2.1/go.mod h1:Q/FZg7HiNSJwgg7tb44NZPnzyUQjZulMjB1X1R6Y6cM=
 github.com/Bofry/host v0.1.2-0.20230617170313-4e1ae2c2f732 h1:17YkfHaTFOn9tdz4QNqb4arL7yGU9+k6+cLYU+W2ZaI=
 github.com/Bofry/host v0.1.2-0.20230617170313-4e1ae2c2f732/go.mod h1:zVujvjsU9+jHZKDPqu0ORijxPxhg841enVD6qCm0duU=
 github.com/Bofry/host v0.2.0 h1:AWg+Idnmj53lMcmLSLE8VQJ7J8jBaTovsxh2f7/cSR0=
 github.com/Bofry/host v0.2.0/go.mod h1:VM/PjwzxwTN0OUvzRfbwPG/Gy2ukZgToCJ9ouNsMEHU=
+github.com/Bofry/host v0.2.1 h1:M/m/QvOCgOQRmjgtKRMH6pjJWi8N44NC/s0pWXbOmq0=
+github.com/Bofry/host v0.2.1/go.mod h1:1wjOoioaJg/+K6h01RnBMkkoVccrr3ZAoDNYijkD/cE=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb h1:tjeS8SxAD45CTU8yqKgAxSQNaML+5ou74Tct/NM1QIo=
 github.com/Bofry/lib-redis-stream v0.1.1-0.20230630085324-869a36a575cb/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/lib-redis-stream v0.2.0 h1:XH/+/jPryKRVeXQRqQvNCfx3jFMsb1IZWuyeRiduxW8=
@@ -14,9 +18,13 @@ github.com/Bofry/lib-redis-stream v0.2.1-0.20230905044012-1346c3c0e6bf h1:p5c8je
 github.com/Bofry/lib-redis-stream v0.2.1-0.20230905044012-1346c3c0e6bf/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/lib-redis-stream v0.2.1-0.20230905113306-d5837cdbd060 h1:3Fokf4UlxoDX2rFnHpAhKzkkLCPtTAKVxto4PliKevE=
 github.com/Bofry/lib-redis-stream v0.2.1-0.20230905113306-d5837cdbd060/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
+github.com/Bofry/lib-redis-stream v0.2.1 h1:c9MonMaV1TMRx4YXSQzjLf4g5f3uL2Lo9OBlAs+bSG4=
+github.com/Bofry/lib-redis-stream v0.2.1/go.mod h1:ZuBlKVx3QQJ4HrIIYPBam1l4ZCVBTWxO/SuBFkAKkMg=
 github.com/Bofry/structproto v0.2.0-alpha.20221227043020/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=
 github.com/Bofry/structproto v0.2.0-alpha.20230613095206 h1:/L/2NiPVAE1La6umcWvIGQwAXuYthoU8uQvrmfCc4fg=
 github.com/Bofry/structproto v0.2.0-alpha.20230613095206/go.mod h1:ExAR9NDYUXZOVlAJrz2oavvVxjaegV7Mb91HQcQYWLA=
+github.com/Bofry/structproto v0.2.1 h1:rcYqwH0dyEyAsfLsfejL/7YF9inIxnT/Y7uQfebPXWQ=
+github.com/Bofry/structproto v0.2.1/go.mod h1:j4dn8G1MhaBWHQBljNOkaDk8D5aW3Y/+Q/3hxQRNPKo=
 github.com/Bofry/trace v0.0.0-20230609161110-402e44d1ff3f h1:d8hMevHCJJ32jT9+GjBeskne0hpgZbD/TspkHpgma8s=
 github.com/Bofry/trace v0.0.0-20230609161110-402e44d1ff3f/go.mod h1:GAiwGnBex/FjAmqB9ydLPvQth1E6ljJ10hSgS78U+8A=
 github.com/Bofry/trace v0.2.0-alpha.20230703152613 h1:UzN4zpq2+2+E8oIs9GpDFlH/7k6oFIcDX07zmgT8Do8=
@@ -68,6 +76,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gtY=
+github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+go.openly.dev/pointy v1.3.0/go.mod h1:rccSKiQDQ2QkNfSVT2KG8Budnfhf3At8IWxy/3ElYes=
 go.opentelemetry.io/otel v1.11.2/go.mod h1:7p4EUV+AqgdlNV9gL97IgUZiVR3yrFXYo53f9BM3tRI=
 go.opentelemetry.io/otel v1.16.0 h1:Z7GVAX/UkAXPKsy94IU+i6thsQS4nb7LviLpnaNeW8s=
 go.opentelemetry.io/otel v1.16.0/go.mod h1:vl0h9NUa1D5s1nv3A5vZOYWn8av4K8Ml6JDeHrT/bx4=
