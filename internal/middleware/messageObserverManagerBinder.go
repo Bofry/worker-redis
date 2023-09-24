@@ -43,14 +43,8 @@ func (b *MessageObserverManagerBinder) Bind(field structproto.FieldInfo, rv refl
 		return err
 	}
 
-	// register MessageHandlers
-	var (
-		moduleID = field.IDName()
-		stream   = field.Name()
-		offset   = field.Tag().Get(TAG_OFFSET)
-	)
-
-	return b.registerObservers(moduleID, stream, offset, rvMessageObserver)
+	// register MessageObservers
+	return b.registerObservers(rvMessageObserver)
 }
 
 // Deinit implements structproto.StructBinder.
@@ -70,7 +64,7 @@ func (b *MessageObserverManagerBinder) bindMessageObserver(target reflect.Value,
 	return prototype.Bind(binder)
 }
 
-func (b *MessageObserverManagerBinder) registerObservers(moduleID, stream, offset string, rv reflect.Value) error {
+func (b *MessageObserverManagerBinder) registerObservers(rv reflect.Value) error {
 	// register MessageObservers
 	if isMessageObserver(rv) {
 		observer := asMessageObserver(rv)
