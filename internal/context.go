@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	redis "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
 )
 
@@ -17,6 +18,8 @@ var (
 type Context struct {
 	ConsumerGroup string
 	ConsumerName  string
+
+	consumer *redis.Consumer
 
 	context context.Context
 	logger  *log.Logger
@@ -82,6 +85,14 @@ func (c *Context) InvalidMessage(message *Message) {
 	if c.invalidMessageHandler != nil {
 		c.invalidMessageHandler.ProcessMessage(c, message)
 	}
+}
+
+func (c *Context) Pause(streams ...string) error {
+	return c.consumer.Pause(streams...)
+}
+
+func (c *Context) Resume(streams ...string) error {
+	return c.consumer.Resume(streams...)
 }
 
 func (c *Context) clone() *Context {

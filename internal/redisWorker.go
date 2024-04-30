@@ -222,6 +222,7 @@ func (w *RedisWorker) receiveMessage(message *Message) {
 	ctx := &Context{
 		ConsumerGroup:         w.ConsumerGroup,
 		ConsumerName:          w.ConsumerName,
+		consumer:              w.consumer,
 		logger:                w.logger,
 		invalidMessageHandler: nil, // be determined by MessageDispatcher
 	}
