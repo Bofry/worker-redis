@@ -99,6 +99,7 @@ func (c *Context) clone() *Context {
 	return &Context{
 		ConsumerGroup:         c.ConsumerGroup,
 		ConsumerName:          c.ConsumerName,
+		consumer:              c.consumer,
 		context:               c.context,
 		logger:                c.logger,
 		invalidMessageHandler: c.invalidMessageHandler,
