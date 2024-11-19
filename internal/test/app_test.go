@@ -3,7 +3,6 @@ package test
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/Bofry/config"
-	"github.com/Bofry/trace"
 	redis "github.com/Bofry/worker-redis"
 	goredis "github.com/go-redis/redis/v7"
 	"github.com/joho/godotenv"
@@ -38,7 +36,9 @@ type MessageManager struct {
 	GotestStream2 *GoTestStreamMessageHandler `stream:"gotestStream2"  offset:"$"`
 	GotestStream3 *GoTestStreamMessageHandler `stream:"gotestStream3"  offset:"$"`
 	GotestStream4 *GoTestStreamMessageHandler `stream:"gotestStream4"  offset:"$"   @MessageStateKeyPrefix:"mystate:"`
-	Invalid       *InvalidMessageHandler      `stream:"?"`
+	GotestStream5 *GoTestStreamMessageHandler `stream:"gotestStream5"  offset:"$"`
+	// Invalid       *InvalidMessageHandler
+	Invalid *InvalidMessageHandler `stream:"?"`
 }
 
 func copyFile(src, dst string) error {
@@ -122,9 +122,15 @@ func TestMain(m *testing.M) {
 		for _, cmd := range []string{
 			"DEL gotestStream",
 			"DEL gotestStream2",
+			"DEL gotestStream3",
+			"DEL gotestStream4",
+			"DEL gotestStream5",
 
 			"XGROUP CREATE gotestStream gotestGroup $ MKSTREAM",
 			"XGROUP CREATE gotestStream2 gotestGroup $ MKSTREAM",
+			"XGROUP CREATE gotestStream3 gotestGroup $ MKSTREAM",
+			"XGROUP CREATE gotestStream4 gotestGroup $ MKSTREAM",
+			"XGROUP CREATE gotestStream5 gotestGroup $ MKSTREAM",
 
 			"XADD gotestStream * name luffy age 19",
 			"XADD gotestStream * name nami age 21",
@@ -134,6 +140,7 @@ func TestMain(m *testing.M) {
 			"XADD gotestStream3 * name nami age 21 header:foo bar",
 			"XADD gotestStream4 * name roger age ?? mystate:foo bar",
 			"XADD gotestStream4 * name ace age 22 mystate:foo bar",
+			"XADD gotestStream5 * text hello",
 		} {
 			_, err := execRedisCommand(client, cmd).Result()
 			if err != nil {
@@ -144,9 +151,15 @@ func TestMain(m *testing.M) {
 			for _, cmd := range []string{
 				"XGROUP DESTROY gotestStream gotestGroup",
 				"XGROUP DESTROY gotestStream2 gotestGroup",
+				"XGROUP DESTROY gotestStream3 gotestGroup",
+				"XGROUP DESTROY gotestStream4 gotestGroup",
+				"XGROUP DESTROY gotestStream5 gotestGroup",
 
 				"DEL gotestStream",
 				"DEL gotestStream2",
+				"DEL gotestStream3",
+				"DEL gotestStream4",
+				"DEL gotestStream5",
 			} {
 				_, err := execRedisCommand(client, cmd).Result()
 				if err != nil {
@@ -193,7 +206,7 @@ func TestStartup(t *testing.T) {
 	// assert app.Config
 	{
 		conf := app.Config
-		var expectedRedisAddresses []string = []string{os.Getenv("REDIS_SERVER")}
+		var expectedRedisAddresses []string = []string{__TEST_REDIS_SERVER}
 		if !reflect.DeepEqual(conf.RedisAddresses, expectedRedisAddresses) {
 			t.Errorf("assert 'Config.RedisAddress':: expected '%v', got '%v'", expectedRedisAddresses, conf.RedisAddresses)
 		}
@@ -223,54 +236,15 @@ func TestStartup(t *testing.T) {
 func TestStartup_UseTracing(t *testing.T) {
 	var (
 		testStartAt time.Time
-
-		traceIDStr string
-		spanIDStr  string
 	)
-
-	{
-		tp, err := trace.JaegerProvider(__TEST_JAEGER_TRACE_URL,
-			trace.ServiceName("trace-demo"),
-			trace.Environment("go-test"),
-			trace.Pid(),
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer tp.Shutdown(context.Background())
-
-		tr := tp.Tracer("worker-redis-test")
-		sp := tr.Open(context.Background(), "TestStartup_UseTracing")
-		defer sp.End()
-
-		var (
-			traceID = sp.TraceID()
-			spanID  = sp.SpanID()
-		)
-		traceIDStr = hex.EncodeToString(traceID[:])
-		spanIDStr = hex.EncodeToString(spanID[:])
-	}
-
-	client := goredis.NewClient(&goredis.Options{
-		Addr: __TEST_REDIS_SERVER,
-		DB:   0,
-	})
-	if client == nil {
-		t.Fatal("fail to create redis.Client")
-	}
-	defer client.Close()
-	cmd := fmt.Sprintf("XADD gotestStream4 * name zoro age 20 mystate:traceparent 00-%s-%s-01", traceIDStr, spanIDStr)
-	_, err := execRedisCommand(client, cmd).Result()
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app := App{}
 	starter := redis.Startup(&app).
 		Middlewares(
 			redis.UseMessageManager(&MessageManager{}),
-			redis.UseErrorHandler(func(ctx *redis.Context, message *redis.Message, err interface{}) {
+			redis.UseErrorHandler(func(ctx *redis.Context, msg *redis.Message, err interface{}) {
 				t.Logf("catch err: %v", err)
+				ctx.InvalidMessage(msg)
 			}),
 			redis.UseTracing(true),
 		).
@@ -315,10 +289,13 @@ func TestStartup_UseTracing(t *testing.T) {
 		}
 		client := &http.Client{}
 		resp, err := client.Do(req)
+		if err != nil {
+			t.Error(err)
+		}
 		if resp.StatusCode != 200 {
 			t.Errorf("assert query 'Jeager Query Url StatusCode':: expected '%v', got '%v'", 200, resp.StatusCode)
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Error(err)
 		}
@@ -493,7 +470,7 @@ func TestStartup_UseMessageObserverManager(t *testing.T) {
 	// assert app.Config
 	{
 		conf := app.Config
-		var expectedRedisAddresses []string = []string{os.Getenv("REDIS_SERVER")}
+		var expectedRedisAddresses []string = []string{__TEST_REDIS_SERVER}
 		if !reflect.DeepEqual(conf.RedisAddresses, expectedRedisAddresses) {
 			t.Errorf("assert 'Config.RedisAddress':: expected '%v', got '%v'", expectedRedisAddresses, conf.RedisAddresses)
 		}

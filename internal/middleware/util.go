@@ -8,10 +8,7 @@ import (
 )
 
 func isMessageHandler(rv reflect.Value) bool {
-	if rv.IsValid() {
-		return rv.Type().AssignableTo(typeOfMessageHandler)
-	}
-	return false
+	return internal.IsMessageHandler(rv)
 }
 
 func isMessageObserver(rv reflect.Value) bool {
@@ -22,12 +19,7 @@ func isMessageObserver(rv reflect.Value) bool {
 }
 
 func asMessageHandler(rv reflect.Value) internal.MessageHandler {
-	if rv.IsValid() {
-		if v, ok := rv.Convert(typeOfMessageHandler).Interface().(internal.MessageHandler); ok {
-			return v
-		}
-	}
-	return nil
+	return internal.AsMessageHandler(rv)
 }
 
 func asMessageObserver(rv reflect.Value) internal.MessageObserver {

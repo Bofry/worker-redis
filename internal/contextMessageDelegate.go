@@ -29,12 +29,12 @@ func NewContextMessageDelegate(ctx *Context) *ContextMessageDelegate {
 // OnAck implements redis.MessageDelegate.
 func (d *ContextMessageDelegate) OnAck(msg *redis.Message) {
 	if d.isRestricted() {
-		GlobalRestrictedMessageDelegate.OnAck(nil)
+		GlobalNoopMessageDelegate.OnAck(nil)
 		return
 	}
 
 	d.parent.OnAck(msg)
-	GlobalContextHelper.InjectReplyCode(d.ctx, PASS)
+	GlobalContextHelper.InjectReplyCodeSafe(d.ctx, PASS)
 
 	// observer
 	if d.messageObserver != nil {
@@ -45,7 +45,7 @@ func (d *ContextMessageDelegate) OnAck(msg *redis.Message) {
 // OnDel implements redis.MessageDelegate.
 func (d *ContextMessageDelegate) OnDel(msg *redis.Message) {
 	if d.isRestricted() {
-		GlobalRestrictedMessageDelegate.OnDel(nil)
+		GlobalNoopMessageDelegate.OnDel(nil)
 		return
 	}
 

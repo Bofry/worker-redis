@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	redis "github.com/Bofry/lib-redis-stream"
@@ -21,8 +22,6 @@ type MessageDispatcher struct {
 	InvalidMessageHandler MessageHandler
 
 	StreamSet map[string]StreamOffset
-
-	invalidMessageHandlerWrapper MessageHandler
 }
 
 func (d *MessageDispatcher) StreamOffsets() []StreamOffset {
@@ -70,7 +69,17 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 		d.MessageTracerService.TextMapPropagator(),
 		carrier,
 		spanName)
-	defer sp.End()
+	defer func() {
+		fmt.Println("(d *MessageDispatcher) ProcessMessage()")
+		sp.End()
+	}()
+
+	sp.Tags(
+		// TODO: add redis server version
+		trace.Stream(message.Stream),
+		trace.ConsumerGroup(ctx.ConsumerGroup),
+		trace.MessageID(message.ID),
+	)
 
 	processingState := ProcessingState{
 		Stream: message.Stream,
@@ -79,7 +88,7 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 	}
 
 	// set invalidMessageHandler
-	ctx.invalidMessageHandler = d.invalidMessageHandlerWrapper
+	ctx.invalidMessageHandler = d.InvalidMessageHandler
 
 	// register observer into message
 	d.MessageObserverService.RegisterMessageObservers(message, handlerID)
@@ -123,9 +132,9 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 					if e, ok := err.(error); ok {
 						sp.Err(e)
 					} else if e, ok := err.(string); ok {
-						sp.Err(fmt.Errorf(e))
+						sp.Err(errors.New(e))
 					} else if e, ok := err.(fmt.Stringer); ok {
-						sp.Err(fmt.Errorf(e.String()))
+						sp.Err(errors.New(e.String()))
 					} else {
 						sp.Err(fmt.Errorf("%+v", err))
 					}
@@ -143,14 +152,7 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 				}
 			})
 
-			sp.Tags(
-				// TODO: add redis server version
-				trace.Stream(stream),
-				trace.ConsumerGroup(ctx.ConsumerGroup),
-				trace.MessageID(message.ID),
-			)
-
-			handler := d.Router.Get(message.Stream)
+			handler := d.Router.Get(stream)
 			if handler != nil {
 				handler.ProcessMessage(ctx, message)
 				{
@@ -169,12 +171,6 @@ func (d *MessageDispatcher) init() {
 	// register the default MessageHandleModule
 	stdMessageHandleModule := NewStdMessageHandleModule(d)
 	d.MessageHandleService.Register(stdMessageHandleModule)
-
-	if d.InvalidMessageHandler != nil {
-		d.invalidMessageHandlerWrapper = &StdInvalidMessageHandler{
-			invalidMessageHandler: d.InvalidMessageHandler,
-		}
-	}
 }
 
 func (d *MessageDispatcher) processError(ctx *Context, message *Message, err interface{}) {

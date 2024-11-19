@@ -2,13 +2,29 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	redis "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
 )
+
+var _ MessageHandler = new(MessageHandleProc)
+
+type MessageHandleProc func(ctx *Context, message *Message)
+
+func (proc MessageHandleProc) ProcessMessage(ctx *Context, message *Message) {
+	proc(ctx, message)
+}
+
+var _ MessageHandleProc = StopRecursiveForwardMessageHandler
+
+func StopRecursiveForwardMessageHandler(ctx *Context, msg *Message) {
+	ctx.logger.Fatal("invalid forward; it might be recursive forward message to InvalidMessageHandler")
+}
 
 var (
 	_ context.Context    = new(Context)
@@ -21,10 +37,12 @@ type Context struct {
 
 	consumer *redis.Consumer
 
-	context context.Context
-	logger  *log.Logger
+	context        context.Context // parent context
+	logger         *log.Logger
+	disableLogging bool
 
 	invalidMessageHandler MessageHandler
+	invalidMessageSent    int32
 
 	values     map[interface{}]interface{}
 	valuesOnce sync.Once
@@ -81,9 +99,42 @@ func (c *Context) Logger() *log.Logger {
 	return c.logger
 }
 
+func (c *Context) IsRecordingLog() bool {
+	return !c.disableLogging
+}
+
+func (c *Context) RecordingLog(v bool) {
+	c.disableLogging = !v
+}
+
 func (c *Context) InvalidMessage(message *Message) {
+	if !atomic.CompareAndSwapInt32(&c.invalidMessageSent, 0, 1) {
+		c.logger.Fatal("invalid operation; message has already been sent to InvalidMessageHandler")
+	}
+
+	GlobalContextHelper.InjectReplyCode(c, ABORT)
+
 	if c.invalidMessageHandler != nil {
-		c.invalidMessageHandler.ProcessMessage(c, message)
+		var (
+			tr       = GlobalTracerManager.GenerateManagedTracer(c.invalidMessageHandler)
+			prevSpan = trace.SpanFromContext(c)
+		)
+
+		sp := tr.Start(prevSpan.Context(), __INVALID_MESSAGE_SPAN_NAME)
+		defer func() {
+			fmt.Println("(c *Context) InvalidMessage()")
+			sp.End()
+		}()
+
+		ctx := &Context{
+			logger:                c.logger,
+			values:                c.values,
+			context:               c,
+			invalidMessageHandler: MessageHandleProc(StopRecursiveForwardMessageHandler),
+		}
+		trace.SpanToContext(ctx, sp)
+
+		c.invalidMessageHandler.ProcessMessage(ctx, message)
 	}
 }
 
@@ -93,6 +144,10 @@ func (c *Context) Pause(streams ...string) error {
 
 func (c *Context) Resume(streams ...string) error {
 	return c.consumer.Resume(streams...)
+}
+
+func (c *Context) Status() StatusCode {
+	return GlobalContextHelper.ExtractReplyCode(c)
 }
 
 func (c *Context) clone() *Context {

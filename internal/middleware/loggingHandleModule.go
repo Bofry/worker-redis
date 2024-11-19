@@ -28,6 +28,10 @@ func (m *LoggingHandleModule) SetSuccessor(successor internal.MessageHandleModul
 // ProcessMessage implements internal.MessageHandleModule.
 func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *redis.Message, state internal.ProcessingState, recover *internal.Recover) {
 	if m.successor != nil {
+		if !ctx.IsRecordingLog() {
+			return
+		}
+
 		evidence := EventEvidence{
 			traceID: state.Span.TraceID(),
 			spanID:  state.Span.SpanID(),
@@ -36,7 +40,7 @@ func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *red
 
 		eventLog := m.loggingService.CreateEventLog(evidence)
 		// NOTE restrict call Ack(), Del()
-		internal.GlobalMessageHelper.Restrict(message)
+		internal.GlobalMessageDelegateHelper.Restrict(message)
 		eventLog.OnProcessMessage(message)
 
 		recover.
@@ -44,7 +48,7 @@ func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *red
 				if err != nil {
 					defer func() {
 						// NOTE restrict call Ack(), Del()
-						internal.GlobalMessageHelper.Restrict(message)
+						internal.GlobalMessageDelegateHelper.Restrict(message)
 						eventLog.OnError(message, err, debug.Stack())
 						eventLog.Flush()
 					}()
@@ -58,13 +62,13 @@ func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *red
 					defer eventLog.Flush()
 
 					// NOTE restrict call Ack(), Del()
-					internal.GlobalMessageHelper.Restrict(message)
+					internal.GlobalMessageDelegateHelper.Restrict(message)
 					eventLog.OnProcessMessageComplete(message, reply)
 				}
 			}).
 			Do(func(f internal.Finalizer) {
 				// NOTE allow call Ack(), Del()
-				internal.GlobalMessageHelper.Unrestrict(message)
+				internal.GlobalMessageDelegateHelper.Unrestrict(message)
 				m.successor.ProcessMessage(ctx, message, state, recover)
 			})
 	}

@@ -89,7 +89,7 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, se
 	if isMessageHandler(rv) {
 		handler := asMessageHandler(rv)
 		if handler != nil {
-			if stream == INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL {
+			if stream == INVALID_MESSAGE_HANDLER_STREAM_SYMBOL {
 				b.registrar.SetInvalidMessageHandler(handler)
 			} else {
 				if offset != "-" {
@@ -107,7 +107,7 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, se
 
 func (b *MessageManagerBinder) isUnknownStream(stream string) bool {
 	switch stream {
-	case INVALID_MESSAGE_HANDLER_TOPIC_SYMBOL:
+	case INVALID_MESSAGE_HANDLER_STREAM_SYMBOL:
 		return true
 	}
 	return false

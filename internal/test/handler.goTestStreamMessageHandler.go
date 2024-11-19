@@ -35,18 +35,19 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 	sp := trace.SpanFromContext(ctx)
 	sp.Argv(fmt.Sprintf("%+v", message.Values))
 
-	switch message.Stream {
-	case "gotestStream2":
+	if message.Stream == "gotestStream2" {
 		h.doSomething(sp.Context())
 		ctx.InvalidMessage(message)
 		return
-	case "gotestStream3":
+	}
+	if message.Stream == "gotestStream3" {
 		var state = make(map[string]interface{})
 		message.Content().State.Visit(func(name string, value interface{}) {
 			state[name] = value
 		})
 		fmt.Printf("%+v\n", state)
-	case "gotestStream4":
+	}
+	if message.Stream == "gotestStream4" {
 		var state = make(map[string]interface{})
 		message.Content(
 			redislib.WithMessageStateKeyPrefix("mystate:"),
@@ -55,6 +56,10 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 		})
 		fmt.Printf("%+v\n", state)
 	}
+	if message.Stream == "gotestStream5" {
+		panic("something occurred")
+	}
+
 	h.counter.increase(sp.Context())
 	message.Ack()
 }

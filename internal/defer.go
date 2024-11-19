@@ -1,6 +1,8 @@
 package internal
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
 type Defer struct {
 	recover *Recover
@@ -19,8 +21,8 @@ func (d *Defer) Do(do func(f Finalizer)) {
 				}
 				err = d.recover.err
 			}
-			f.run(err)
 			d.catch(err)
+			f.run(err)
 		}(Finalizer{d})
 	}
 	do(Finalizer{d})

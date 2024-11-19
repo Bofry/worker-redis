@@ -2,9 +2,9 @@ package internal
 
 import "fmt"
 
-type MessageHelper struct{}
+type MessageDelegateHelper struct{}
 
-func (MessageHelper) IsRestricted(msg *Message) (bool, error) {
+func (MessageDelegateHelper) IsRestricted(msg *Message) (bool, error) {
 	d, ok := msg.Delegate.(*ContextMessageDelegate)
 	if !ok {
 		return false, fmt.Errorf("invalid operation")
@@ -12,7 +12,7 @@ func (MessageHelper) IsRestricted(msg *Message) (bool, error) {
 	return d.isRestricted(), nil
 }
 
-func (MessageHelper) Restrict(msg *Message) error {
+func (MessageDelegateHelper) Restrict(msg *Message) error {
 	d, ok := msg.Delegate.(*ContextMessageDelegate)
 	if !ok {
 		return fmt.Errorf("invalid operation")
@@ -21,7 +21,7 @@ func (MessageHelper) Restrict(msg *Message) error {
 	return nil
 }
 
-func (MessageHelper) Unrestrict(msg *Message) error {
+func (MessageDelegateHelper) Unrestrict(msg *Message) error {
 	d, ok := msg.Delegate.(*ContextMessageDelegate)
 	if !ok {
 		return fmt.Errorf("invalid operation")

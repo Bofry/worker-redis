@@ -3,8 +3,8 @@ package test
 import (
 	"fmt"
 
+	"github.com/Bofry/trace"
 	redis "github.com/Bofry/worker-redis"
-	"github.com/Bofry/worker-redis/tracing"
 )
 
 type InvalidMessageHandler struct {
@@ -16,9 +16,9 @@ func (h *InvalidMessageHandler) Init() {
 }
 
 func (h *InvalidMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
-	tr := tracing.GetTracer(h)
-	sp := tr.Start(ctx, "ProcessMessage()")
-	defer sp.End()
+	sp := trace.SpanFromContext(ctx)
+
+	sp.Info("InvalidMessage %+v", string(message.ID))
 
 	ctx.Logger().Printf("Invalid Message on %s: %v\n", message.Stream, message.XMessage)
 }

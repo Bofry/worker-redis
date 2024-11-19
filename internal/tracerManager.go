@@ -13,9 +13,11 @@ type TracerManager struct {
 	TracerProvider    *trace.SeverityTracerProvider
 	TextMapPropagator propagation.TextMapPropagator
 
-	tracers map[reflect.Type]*trace.SeverityTracer
+	tracers         map[reflect.Type]*trace.SeverityTracer
+	undefinedTracer *trace.SeverityTracer
 
-	mutex sync.Mutex
+	mutex               sync.Mutex
+	undefinedTracerOnce sync.Once
 }
 
 func NewTraceManager() *TracerManager {
@@ -48,6 +50,15 @@ func (m *TracerManager) GenerateManagedTracer(v interface{}) *trace.SeverityTrac
 
 	// create new
 	return m.createManagedTracer(rt)
+}
+
+func (m *TracerManager) UndefinedTracer() *trace.SeverityTracer {
+	if m.undefinedTracer == nil {
+		m.undefinedTracerOnce.Do(func() {
+			m.undefinedTracer = m.createTracer(__UNDEFINED_TRACER_NAME)
+		})
+	}
+	return m.undefinedTracer
 }
 
 func (m *TracerManager) createManagedTracer(rt reflect.Type) *trace.SeverityTracer {

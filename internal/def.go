@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"sync/atomic"
 
 	redis "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
@@ -16,6 +15,11 @@ const (
 	LOGGER_PREFIX string = "[worker-redis] "
 
 	__CONTEXT_REPLY_KEY ctxReplyKeyType = 0
+
+	__UNDEFINED_TRACER_NAME     = "undefined"
+	__INVALID_MESSAGE_SPAN_NAME = "InvalidMessage"
+
+	__INVALID_MESSAGE_HANDLER_NAME = "InvalidMessageHandler"
 )
 
 const (
@@ -39,15 +43,17 @@ const (
 
 var (
 	typeOfHost                  = reflect.TypeOf(RedisWorker{})
+	typeOfMessageHandler        = reflect.TypeOf((*MessageHandler)(nil)).Elem()
 	typeOfMessageObserverAffair = reflect.TypeOf((*MessageObserverAffair)(nil)).Elem()
 	defaultTracerProvider       = createNoopTracerProvider()
 	defaultTextMapPropagator    = createNoopTextMapPropagator()
+	defaultMessageDelegate      = NoopMessageDelegate(0)
 
-	globalTracerManager = defaultTracerManager()
-
+	GlobalTracerManager             *TracerManager        // be register from NsqWorker
 	GlobalContextHelper             ContextHelper         = ContextHelper{}
 	GlobalRestrictedMessageDelegate redis.MessageDelegate = RestrictedMessageDelegate(0)
-	GlobalMessageHelper             MessageHelper         = MessageHelper{}
+	GlobalNoopMessageDelegate       redis.MessageDelegate = NoopMessageDelegate(0)
+	GlobalMessageDelegateHelper     MessageDelegateHelper = MessageDelegateHelper{}
 
 	RedisWorkerModuleInstance = RedisWorkerModule{}
 
@@ -56,6 +62,8 @@ var (
 
 type (
 	ctxReplyKeyType int
+
+	StatusCode = ReplyCode
 
 	tracerManagerHolder struct {
 		v *TracerManager
@@ -107,25 +115,4 @@ func createNoopTracerProvider() *trace.SeverityTracerProvider {
 
 func createNoopTextMapPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator()
-}
-
-func defaultTracerManager() *atomic.Value {
-	v := &atomic.Value{}
-	v.Store(tracerManagerHolder{
-		v: NewTraceManager(),
-	})
-	return v
-}
-
-func GetTracerManager() *TracerManager {
-	return globalTracerManager.Load().(tracerManagerHolder).v
-}
-
-func SetTracerManager(v *TracerManager) {
-	current := GetTracerManager()
-	if current != v {
-		globalTracerManager.Store(tracerManagerHolder{
-			v: v,
-		})
-	}
 }
