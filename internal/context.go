@@ -38,6 +38,8 @@ type Context struct {
 	consumer *redis.Consumer
 
 	context        context.Context // parent context
+	err            error
+	errExisted     int32
 	logger         *log.Logger
 	disableLogging bool
 
@@ -59,8 +61,24 @@ func (*Context) Done() <-chan struct{} {
 }
 
 // Err implements context.Context.
-func (*Context) Err() error {
+func (c *Context) Err() error {
+	if c.err != nil {
+		return c.err
+	}
+	if c.context != nil {
+		return c.context.Err()
+	}
 	return nil
+}
+
+func (c *Context) CatchErr(err error) {
+	if err != nil {
+		if c.err != nil {
+			if atomic.CompareAndSwapInt32(&c.errExisted, 0, 1) {
+				c.err = err
+			}
+		}
+	}
 }
 
 // Value implements context.Context.

@@ -327,6 +327,13 @@ func TestStartup_UseLogging_And_UseTracing(t *testing.T) {
 		loggingBuffer bytes.Buffer
 	)
 
+	type MessageManager struct {
+		GotestStream  *GoTestStreamMessageHandler `stream:"gotestStream"   offset:"$"   @ExpandEnv:"off"`
+		GotestStream2 *GoTestStreamMessageHandler `stream:"gotestStream2"  offset:"$"`
+		// Invalid       *InvalidMessageHandler
+		Invalid *InvalidMessageHandler `stream:"?"`
+	}
+
 	app := App{}
 	starter := redis.Startup(&app).
 		Middlewares(
