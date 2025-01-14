@@ -98,7 +98,7 @@ type (
 
 	MessageErrorHandler interface {
 		MessageHandler
-		ProcessMessageError(ctx *Context, message *Message, err error)
+		ProcessMessageError(ctx *Context, message *Message, err interface{})
 	}
 
 	ErrorHandler func(ctx *Context, message *Message, err interface{})

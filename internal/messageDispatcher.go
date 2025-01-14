@@ -110,18 +110,26 @@ func (d *MessageDispatcher) subscribe(consumer *redis.Consumer) error {
 }
 
 func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Message, state ProcessingState, recover *Recover) {
+	var handler MessageHandler
+
 	recover.
 		Defer(func(err interface{}) {
-			if !ctx.aborted && err != nil {
-				d.processError(ctx, message, err)
+			if err != nil {
+				if handler != nil {
+					if h, ok := handler.(MessageErrorHandler); ok {
+						h.ProcessMessageError(ctx, message, err)
+					}
+				}
+				if !ctx.aborted {
+					d.processError(ctx, message, err)
+				}
 			}
 		}).
 		Do(func(finalizer Finalizer) {
 			var (
-				tr      *trace.SeverityTracer = state.Tracer
-				sp      *trace.SeveritySpan   = state.Span
-				stream  string                = state.Stream
-				handler MessageHandler
+				tr     *trace.SeverityTracer = state.Tracer
+				sp     *trace.SeveritySpan   = state.Span
+				stream string                = state.Stream
 			)
 			_ = tr
 
@@ -130,21 +138,14 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 
 			finalizer.Add(func(err interface{}) {
 				if err != nil {
-					var realerr error
 					if e, ok := err.(error); ok {
-						realerr = e
+						sp.Err(e)
 					} else if e, ok := err.(string); ok {
-						realerr = errors.New(e)
+						sp.Err(errors.New(e))
 					} else if e, ok := err.(fmt.Stringer); ok {
-						realerr = errors.New(e.String())
+						sp.Err(errors.New(e.String()))
 					} else {
-						realerr = fmt.Errorf("%+v", err)
-					}
-					sp.Err(realerr)
-					if handler != nil {
-						if h, ok := handler.(MessageErrorHandler); ok {
-							h.ProcessMessageError(ctx, message, realerr)
-						}
+						sp.Err(fmt.Errorf("%+v", err))
 					}
 				}
 
