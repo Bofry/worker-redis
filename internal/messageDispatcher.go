@@ -112,7 +112,7 @@ func (d *MessageDispatcher) subscribe(consumer *redis.Consumer) error {
 func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Message, state ProcessingState, recover *Recover) {
 	recover.
 		Defer(func(err interface{}) {
-			if err != nil {
+			if !ctx.aborted && err != nil {
 				d.processError(ctx, message, err)
 			}
 		}).
