@@ -21,7 +21,7 @@ var _ host.Host = new(RedisWorker)
 type RedisWorker struct {
 	ConsumerGroup       string
 	ConsumerName        string
-	RedisOption         *redis.UniversalOptions
+	RedisOption         *UniversalOptions
 	MaxInFlight         int64
 	MaxPollingTimeout   time.Duration
 	ClaimMinIdleTime    time.Duration
@@ -306,10 +306,10 @@ func (w *RedisWorker) findInvalidMessageHandler() (MessageHandler, error) {
 					fn := rv.MethodByName(host.APP_COMPONENT_INIT_METHOD)
 					if fn.IsValid() {
 						if fn.Kind() != reflect.Func {
-							return nil, fmt.Errorf("fail to Init() resource. cannot find func %s() within type %s\n", host.APP_COMPONENT_INIT_METHOD, rv.Type().String())
+							return nil, fmt.Errorf("fail to Init() resource. cannot find func %s() within type %s", host.APP_COMPONENT_INIT_METHOD, rv.Type().String())
 						}
 						if fn.Type().NumIn() != 0 || fn.Type().NumOut() != 0 {
-							return nil, fmt.Errorf("fail to Init() resource. %s.%s() type should be func()\n", rv.Type().String(), host.APP_COMPONENT_INIT_METHOD)
+							return nil, fmt.Errorf("fail to Init() resource. %s.%s() type should be func()", rv.Type().String(), host.APP_COMPONENT_INIT_METHOD)
 						}
 						fn.Call([]reflect.Value(nil))
 					}

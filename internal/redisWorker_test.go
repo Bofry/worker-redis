@@ -63,10 +63,13 @@ func TestRedisWorker(t *testing.T) {
 	}
 }
 
+var _ MessageHandler = new(mockMessageHandler)
+
 type mockMessageHandler struct {
 	msgCnt int32
 }
 
+// ProcessMessage implements MessageHandler.
 func (h *mockMessageHandler) ProcessMessage(ctx *Context, message *Message) {
 	log.Printf("Message on %s: %v\n", message.Stream, message.XMessage)
 	message.Ack()

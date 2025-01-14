@@ -28,7 +28,7 @@ func (m *LoggingHandleModule) SetSuccessor(successor internal.MessageHandleModul
 // ProcessMessage implements internal.MessageHandleModule.
 func (m *LoggingHandleModule) ProcessMessage(ctx *internal.Context, message *redis.Message, state internal.ProcessingState, recover *internal.Recover) {
 	if m.successor != nil {
-		if !ctx.IsRecordingLog() {
+		if !ctx.CanRecordingLog() {
 			return
 		}
 

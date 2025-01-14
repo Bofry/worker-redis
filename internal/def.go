@@ -49,7 +49,7 @@ var (
 	defaultTextMapPropagator    = createNoopTextMapPropagator()
 	defaultMessageDelegate      = NoopMessageDelegate(0)
 
-	GlobalTracerManager             *TracerManager        // be register from NsqWorker
+	GlobalTracerManager             *TracerManager        // be register from RedisWorker
 	GlobalContextHelper             ContextHelper         = ContextHelper{}
 	GlobalRestrictedMessageDelegate redis.MessageDelegate = RestrictedMessageDelegate(0)
 	GlobalNoopMessageDelegate       redis.MessageDelegate = NoopMessageDelegate(0)
@@ -64,10 +64,6 @@ type (
 	ctxReplyKeyType int
 
 	StatusCode = ReplyCode
-
-	tracerManagerHolder struct {
-		v *TracerManager
-	}
 
 	UniversalOptions = redis.UniversalOptions
 	UniversalClient  = redis.UniversalClient

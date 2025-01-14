@@ -12,20 +12,6 @@ import (
 	"github.com/Bofry/trace"
 )
 
-var _ MessageHandler = new(MessageHandleProc)
-
-type MessageHandleProc func(ctx *Context, message *Message)
-
-func (proc MessageHandleProc) ProcessMessage(ctx *Context, message *Message) {
-	proc(ctx, message)
-}
-
-var _ MessageHandleProc = StopRecursiveForwardMessageHandler
-
-func StopRecursiveForwardMessageHandler(ctx *Context, msg *Message) {
-	ctx.logger.Fatal("invalid forward; it might be recursive forward message to InvalidMessageHandler")
-}
-
 var (
 	_ context.Context    = new(Context)
 	_ trace.ValueContext = new(Context)
@@ -42,6 +28,7 @@ type Context struct {
 	errExisted     int32
 	logger         *log.Logger
 	disableLogging bool
+	aborted        bool
 
 	invalidMessageHandler MessageHandler
 	invalidMessageSent    int32
@@ -69,6 +56,14 @@ func (c *Context) Err() error {
 		return c.context.Err()
 	}
 	return nil
+}
+
+func (c *Context) Break() {
+	c.aborted = true
+}
+
+func (c *Context) IsAborted() bool {
+	return c.aborted
 }
 
 func (c *Context) CatchErr(err error) {
@@ -100,6 +95,10 @@ func (c *Context) Value(key any) any {
 
 // SetValue implements trace.ValueContext.
 func (c *Context) SetValue(key interface{}, value interface{}) {
+	if c.aborted {
+		return
+	}
+
 	if key == nil {
 		return
 	}
@@ -117,15 +116,23 @@ func (c *Context) Logger() *log.Logger {
 	return c.logger
 }
 
-func (c *Context) IsRecordingLog() bool {
+func (c *Context) CanRecordingLog() bool {
 	return !c.disableLogging
 }
 
 func (c *Context) RecordingLog(v bool) {
+	if c.aborted {
+		return
+	}
+
 	c.disableLogging = !v
 }
 
 func (c *Context) InvalidMessage(message *Message) {
+	if c.aborted {
+		return
+	}
+
 	if !atomic.CompareAndSwapInt32(&c.invalidMessageSent, 0, 1) {
 		c.logger.Fatal("invalid operation; message has already been sent to InvalidMessageHandler")
 	}
@@ -177,5 +184,6 @@ func (c *Context) clone() *Context {
 		logger:                c.logger,
 		invalidMessageHandler: c.invalidMessageHandler,
 		values:                c.values,
+		aborted:               c.aborted,
 	}
 }
