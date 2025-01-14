@@ -70,7 +70,6 @@ func (d *MessageDispatcher) ProcessMessage(ctx *Context, message *Message) {
 		carrier,
 		spanName)
 	defer func() {
-		fmt.Println("(d *MessageDispatcher) ProcessMessage()")
 		sp.End()
 	}()
 
