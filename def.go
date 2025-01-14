@@ -32,10 +32,11 @@ type (
 	MessageObserver       = internal.MessageObserver
 	MessageObserverAffair = internal.MessageObserverAffair
 
-	MessageHandler = internal.MessageHandler
-	Worker         = internal.RedisWorker
-	Context        = internal.Context
-	ReplyCode      = internal.ReplyCode
+	MessageHandler      = internal.MessageHandler
+	MessageErrorHandler = internal.MessageErrorHandler
+	Worker              = internal.RedisWorker
+	Context             = internal.Context
+	ReplyCode           = internal.ReplyCode
 
 	ErrorHandler = internal.ErrorHandler
 )
