@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -147,7 +146,6 @@ func (c *Context) InvalidMessage(message *Message) {
 
 		sp := tr.Start(prevSpan.Context(), __INVALID_MESSAGE_SPAN_NAME)
 		defer func() {
-			fmt.Println("(c *Context) InvalidMessage()")
 			sp.End()
 		}()
 
