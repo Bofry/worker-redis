@@ -118,9 +118,10 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 		}).
 		Do(func(finalizer Finalizer) {
 			var (
-				tr     *trace.SeverityTracer = state.Tracer
-				sp     *trace.SeveritySpan   = state.Span
-				stream string                = state.Stream
+				tr      *trace.SeverityTracer = state.Tracer
+				sp      *trace.SeveritySpan   = state.Span
+				stream  string                = state.Stream
+				handler MessageHandler
 			)
 			_ = tr
 
@@ -129,14 +130,21 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 
 			finalizer.Add(func(err interface{}) {
 				if err != nil {
+					var realerr error
 					if e, ok := err.(error); ok {
-						sp.Err(e)
+						realerr = e
 					} else if e, ok := err.(string); ok {
-						sp.Err(errors.New(e))
+						realerr = errors.New(e)
 					} else if e, ok := err.(fmt.Stringer); ok {
-						sp.Err(errors.New(e.String()))
+						realerr = errors.New(e.String())
 					} else {
-						sp.Err(fmt.Errorf("%+v", err))
+						realerr = fmt.Errorf("%+v", err)
+					}
+					sp.Err(realerr)
+					if handler != nil {
+						if h, ok := handler.(MessageErrorHandler); ok {
+							h.ProcessMessageError(ctx, message, realerr)
+						}
 					}
 				}
 
@@ -152,7 +160,7 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 				}
 			})
 
-			handler := d.Router.Get(stream)
+			handler = d.Router.Get(stream)
 			if handler != nil {
 				handler.ProcessMessage(ctx, message)
 				{

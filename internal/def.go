@@ -96,6 +96,11 @@ type (
 		ProcessMessage(ctx *Context, message *Message)
 	}
 
+	MessageErrorHandler interface {
+		MessageHandler
+		ProcessMessageError(ctx *Context, message *Message, err error)
+	}
+
 	ErrorHandler func(ctx *Context, message *Message, err interface{})
 
 	OnHostErrorHandler func(err error) (disposed bool)
