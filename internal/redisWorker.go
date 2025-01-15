@@ -225,7 +225,7 @@ func (w *RedisWorker) configConsumer() {
 		ClaimSensitivity:    w.ClaimSensitivity,
 		ClaimOccurrenceRate: w.ClaimOccurrenceRate,
 		MessageHandler:      w.receiveMessage,
-		RedisErrorHandler:   w.onHostError,
+		ErrorHandler:        w.onHostError,
 		Logger:              w.logger,
 	}
 

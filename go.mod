@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Bofry/config v0.2.1
 	github.com/Bofry/host v0.2.1
-	github.com/Bofry/lib-redis-stream v0.3.2-0.20241210035933-ada8484e8020
+	github.com/Bofry/lib-redis-stream v0.3.2
 	github.com/Bofry/structproto v0.2.1
 	github.com/Bofry/trace v0.2.1
 	github.com/go-redis/redis/v7 v7.4.1
