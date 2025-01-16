@@ -97,7 +97,6 @@ func (c *Context) SetValue(key interface{}, value interface{}) {
 	if c.aborted {
 		return
 	}
-
 	if key == nil {
 		return
 	}
