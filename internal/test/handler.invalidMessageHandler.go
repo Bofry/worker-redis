@@ -13,10 +13,14 @@ var (
 
 type InvalidMessageHandler struct {
 	ServiceProvider *ServiceProvider
+
+	counter *TestStreamMessageCounter
 }
 
 func (h *InvalidMessageHandler) Init() {
 	fmt.Println("InvalidMessageHandler.Init()")
+
+	h.counter = h.ServiceProvider.TestStreamMessageCounter
 }
 
 // ProcessMessage implements internal.MessageHandler.
@@ -26,4 +30,6 @@ func (h *InvalidMessageHandler) ProcessMessage(ctx *redis.Context, message *redi
 	sp.Info("InvalidMessage %+v", string(message.ID))
 
 	ctx.Logger().Printf("Invalid Message on %s: %v\n", message.Stream, message.XMessage)
+
+	h.counter.IncreaseInvalidMessageCount(ctx)
 }

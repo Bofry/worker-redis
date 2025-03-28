@@ -16,7 +16,11 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 )
 
-var _ host.Host = new(RedisWorker)
+var (
+	_ host.Host               = new(RedisWorker)
+	_ redis.MessageHandleProc = new(RedisWorker).receiveMessage
+	_ redis.MessageFilterProc = new(RedisWorker).filterMessage
+)
 
 type RedisWorker struct {
 	ConsumerGroup       string
@@ -36,6 +40,7 @@ type RedisWorker struct {
 
 	messageDispatcher *MessageDispatcher
 	messageManager    interface{}
+	messageFilter     MessageFilter
 
 	messageHandleService   *MessageHandleService
 	messageTracerService   *MessageTracerService
@@ -130,6 +135,7 @@ func (w *RedisWorker) alloc() {
 
 	w.tracerManager = NewTraceManager()
 	w.messageHandleService = NewMessageHandleService()
+	w.messageFilter = make(MessageFilter)
 	w.messageTracerService = &MessageTracerService{
 		TracerManager: w.tracerManager,
 	}
@@ -142,7 +148,7 @@ func (w *RedisWorker) alloc() {
 		MessageTracerService:   w.messageTracerService,
 		MessageObserverService: w.messageObserverService,
 		Router:                 make(Router),
-		StreamSet:              make(map[string]StreamOffset),
+		StreamSet:              make(map[string]ConsumerStream),
 		OnHostErrorProc:        w.onHostError,
 	}
 
@@ -179,7 +185,7 @@ func (w *RedisWorker) init() {
 	w.configConsumer()
 }
 
-func (w *RedisWorker) registerGroup(offsets []StreamOffset) error {
+func (w *RedisWorker) registerGroup(offsets []ConsumerStream) error {
 	if !w.AllowCreateGroup {
 		return nil
 	}
@@ -199,11 +205,11 @@ func (w *RedisWorker) registerGroup(offsets []StreamOffset) error {
 
 	// XGROUP CREATE AND MKSTREAM
 	for _, readOffset := range offsets {
-		if len(readOffset.Offset) == 0 {
-			readOffset.Offset = redis.StreamLastDeliveredID
+		if len(readOffset.LastDeliveredID) == 0 {
+			readOffset.LastDeliveredID = redis.StreamLastDeliveredID
 		}
 
-		_, err := admin.CreateConsumerGroupAndStream(readOffset.Stream, w.ConsumerGroup, readOffset.Offset)
+		_, err := admin.CreateConsumerGroupAndStream(readOffset.Stream, w.ConsumerGroup, readOffset.LastDeliveredID)
 		if err != nil {
 			if !(isRedisBusyGroupError(err)) {
 				return err
@@ -225,6 +231,7 @@ func (w *RedisWorker) configConsumer() {
 		ClaimSensitivity:    w.ClaimSensitivity,
 		ClaimOccurrenceRate: w.ClaimOccurrenceRate,
 		MessageHandler:      w.receiveMessage,
+		MessageFilter:       w.filterMessage,
 		ErrorHandler:        w.onHostError,
 		Logger:              w.logger,
 	}
@@ -249,6 +256,10 @@ func (w *RedisWorker) receiveMessage(message *Message) {
 	delegate.configure(message)
 
 	w.messageDispatcher.ProcessMessage(ctx, message)
+}
+
+func (w *RedisWorker) filterMessage(message *Message) bool {
+	return w.messageFilter.Match(message)
 }
 
 func (w *RedisWorker) onHostError(err error) (disposed bool) {

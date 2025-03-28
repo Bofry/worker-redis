@@ -21,15 +21,15 @@ type MessageDispatcher struct {
 	ErrorHandler          ErrorHandler
 	InvalidMessageHandler MessageHandler
 
-	StreamSet map[string]StreamOffset
+	StreamSet map[string]ConsumerStream
 }
 
-func (d *MessageDispatcher) StreamOffsets() []StreamOffset {
+func (d *MessageDispatcher) StreamOffsets() []ConsumerStream {
 	var (
 		streams = d.StreamSet
 	)
 
-	offsets := make([]StreamOffset, 0, len(streams))
+	offsets := make([]ConsumerStream, 0, len(streams))
 	for _, v := range streams {
 		offsets = append(offsets, v)
 	}
@@ -114,11 +114,17 @@ func (d *MessageDispatcher) internalProcessMessage(ctx *Context, message *Messag
 	recover.
 		Defer(func(err interface{}) {
 			if err != nil {
+				// throw fatal error
+				if ex, ok := err.(*FatalError); ok {
+					panic(ex.err)
+				}
+				// send to MessageErrorHandler
 				if handler != nil {
 					if h, ok := handler.(MessageErrorHandler); ok {
 						h.ProcessMessageError(ctx, message, err)
 					}
 				}
+				// send error to outer
 				if !ctx.aborted {
 					d.processError(ctx, message, err)
 				}

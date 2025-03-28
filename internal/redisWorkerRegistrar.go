@@ -2,8 +2,6 @@ package internal
 
 import (
 	"reflect"
-
-	redis "github.com/Bofry/lib-redis-stream"
 )
 
 type RedisWorkerRegistrar struct {
@@ -36,12 +34,16 @@ func (r *RedisWorkerRegistrar) SetMessageManager(messageManager interface{}) {
 	r.worker.messageManager = messageManager
 }
 
-func (r *RedisWorkerRegistrar) RegisterStream(streamOffset redis.StreamOffset) {
+func (r *RedisWorkerRegistrar) RegisterStream(streamOffset ConsumerStream) {
 	r.worker.messageDispatcher.StreamSet[streamOffset.Stream] = streamOffset
 }
 
-func (r *RedisWorkerRegistrar) AddRouter(stream string, handler MessageHandler, handlerComponentID string, setting *StreamSetting) {
-	r.worker.messageDispatcher.Router.Add(stream, handler, handlerComponentID, setting)
+func (r *RedisWorkerRegistrar) AddMessageFilter(stream string, handler MessageFilterAffinity) {
+	r.worker.messageFilter.Add(stream, handler)
+}
+
+func (r *RedisWorkerRegistrar) AddRouter(stream string, handler MessageHandler, handlerComponentID string, setting *StreamSetting) error {
+	return r.worker.messageDispatcher.Router.Add(stream, handler, handlerComponentID, setting)
 }
 
 func (r *RedisWorkerRegistrar) RegisterMessageObserver(v MessageObserver) {

@@ -33,7 +33,7 @@ func (s *MessageObserverService) UnregisterAllMessageObservers(msg *Message) {
 }
 
 func (s *MessageObserverService) init(messageManager interface{}) {
-	if s.MessageObservers == nil || len(s.MessageObservers) == 0 {
+	if len(s.MessageObservers) == 0 {
 		return
 	}
 	if messageManager == nil {
@@ -68,10 +68,10 @@ func (s *MessageObserverService) buildHandlerObservers(messageManager interface{
 
 		var observers []MessageObserver
 
-		if isMessageObserverAffair(rvHandler) {
-			affair := asMessageObserverAffair(rvHandler)
-			if affair != nil {
-				types := affair.MessageObserverTypes()
+		if isMessageObserverAffinity(rvHandler) {
+			affinity := asMessageObserverAffinity(rvHandler)
+			if affinity != nil {
+				types := affinity.MessageObserverTypes()
 				for _, t := range types {
 					v := s.MessageObservers[t]
 					if v == nil {

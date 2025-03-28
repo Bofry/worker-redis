@@ -1,11 +1,17 @@
 package internal
 
+import "fmt"
+
 type Router map[string]RouteComponent
 
-func (r Router) Add(stream string, handler MessageHandler, handlerComponentID string, streamSetting *StreamSetting) {
+func (r Router) Add(stream string, handler MessageHandler, handlerComponentID string, streamSetting *StreamSetting) error {
 	var setting = defaultStreamSetting
 	if streamSetting != nil {
 		setting = streamSetting
+	}
+
+	if v, ok := r[stream]; ok {
+		return fmt.Errorf("stream '%s' has registered by handler %s", stream, v.HandlerComponentID)
 	}
 
 	r[stream] = RouteComponent{
@@ -13,6 +19,7 @@ func (r Router) Add(stream string, handler MessageHandler, handlerComponentID st
 		HandlerComponentID: handlerComponentID,
 		StreamSetting:      setting,
 	}
+	return nil
 }
 
 func (r Router) Remove(stream string) {

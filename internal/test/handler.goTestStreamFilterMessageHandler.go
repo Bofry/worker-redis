@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	redislib "github.com/Bofry/lib-redis-stream"
 	"github.com/Bofry/trace"
@@ -12,24 +11,35 @@ import (
 )
 
 var (
-	_ redis.MessageHandler          = new(GoTestStreamMessageHandler)
-	_ redis.MessageObserverAffinity = new(GoTestStreamMessageHandler)
+	_ redis.MessageHandler        = new(GoTestStreamFilterMessageHandler)
+	_ redis.MessageFilterAffinity = new(GoTestStreamFilterMessageHandler)
 )
 
-type GoTestStreamMessageHandler struct {
+type GoTestStreamFilterMessageHandler struct {
 	ServiceProvider *ServiceProvider
 
 	counter *TestStreamMessageCounter
 }
 
-func (h *GoTestStreamMessageHandler) Init() {
-	fmt.Println("GoTestStreamMessageHandler.Init()")
+// Filter implements internal.MessageFilterAffinity.
+func (h *GoTestStreamFilterMessageHandler) Filter(message *redis.Message) bool {
+	fmt.Printf("stream: %s, values: %+v\n", message.Stream, message.Values)
+	if len(message.Values) > 0 {
+		if message.Values["name"] == "luffy" {
+			return false
+		}
+	}
+	return true
+}
+
+func (h *GoTestStreamFilterMessageHandler) Init() {
+	fmt.Println("GoTestStreamFilterMessageHandler.Init()")
 
 	h.counter = h.ServiceProvider.TestStreamMessageCounter
 }
 
 // ProcessMessage implements internal.MessageHandler.
-func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
+func (h *GoTestStreamFilterMessageHandler) ProcessMessage(ctx *redis.Context, message *redis.Message) {
 	ctx.Logger().Printf("Message on %s: %v\n", message.Stream, message.XMessage)
 
 	sp := trace.SpanFromContext(ctx)
@@ -66,14 +76,7 @@ func (h *GoTestStreamMessageHandler) ProcessMessage(ctx *redis.Context, message 
 	message.Ack()
 }
 
-// MessageObserverTypes implements internal.MessageObserverAffair.
-func (*GoTestStreamMessageHandler) MessageObserverTypes() []reflect.Type {
-	return []reflect.Type{
-		MessageObserverManager.GoTestStreamMessageObserver.Type(),
-	}
-}
-
-func (h *GoTestStreamMessageHandler) doSomething(ctx context.Context) {
+func (h *GoTestStreamFilterMessageHandler) doSomething(ctx context.Context) {
 	tr := tracing.GetTracer(h)
 	sp := tr.Start(ctx, "doSomething()")
 	defer sp.End()

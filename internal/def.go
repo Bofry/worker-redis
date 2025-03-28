@@ -42,12 +42,14 @@ const (
 )
 
 var (
-	typeOfHost                  = reflect.TypeOf(RedisWorker{})
-	typeOfMessageHandler        = reflect.TypeOf((*MessageHandler)(nil)).Elem()
-	typeOfMessageObserverAffair = reflect.TypeOf((*MessageObserverAffair)(nil)).Elem()
-	defaultTracerProvider       = createNoopTracerProvider()
-	defaultTextMapPropagator    = createNoopTextMapPropagator()
-	defaultMessageDelegate      = NoopMessageDelegate(0)
+	typeOfHost                    = reflect.TypeOf(RedisWorker{})
+	typeOfMessageHandler          = reflect.TypeOf((*MessageHandler)(nil)).Elem()
+	typeOfMessageObserver         = reflect.TypeOf((*MessageObserver)(nil)).Elem()
+	typeOfMessageObserverAffinity = reflect.TypeOf((*MessageObserverAffinity)(nil)).Elem()
+	typeOfMessageFilterAffinity   = reflect.TypeOf((*MessageFilterAffinity)(nil)).Elem()
+	defaultTracerProvider         = createNoopTracerProvider()
+	defaultTextMapPropagator      = createNoopTextMapPropagator()
+	defaultMessageDelegate        = NoopMessageDelegate(0)
 
 	GlobalTracerManager             *TracerManager        // be register from RedisWorker
 	GlobalContextHelper             ContextHelper         = ContextHelper{}
@@ -73,6 +75,11 @@ type (
 	StreamOffset     = redis.StreamOffset
 	StreamOffsetInfo = redis.StreamOffsetInfo
 
+	ConsumerStream struct {
+		Stream          string
+		LastDeliveredID string
+	}
+
 	MessageHandleModule interface {
 		CanSetSuccessor() bool
 		SetSuccessor(successor MessageHandleModule)
@@ -88,12 +95,16 @@ type (
 		Type() reflect.Type
 	}
 
-	MessageObserverAffair interface {
+	MessageObserverAffinity interface {
 		MessageObserverTypes() []reflect.Type
 	}
 
 	MessageHandler interface {
 		ProcessMessage(ctx *Context, message *Message)
+	}
+
+	MessageFilterAffinity interface {
+		Filter(message *Message) bool
 	}
 
 	MessageErrorHandler interface {

@@ -11,24 +11,24 @@ func isMessageHandler(rv reflect.Value) bool {
 	return internal.IsMessageHandler(rv)
 }
 
-func isMessageObserver(rv reflect.Value) bool {
-	if rv.IsValid() {
-		return rv.Type().AssignableTo(typeOfMessageObserver)
-	}
-	return false
-}
-
 func asMessageHandler(rv reflect.Value) internal.MessageHandler {
 	return internal.AsMessageHandler(rv)
 }
 
+func isMessageObserver(rv reflect.Value) bool {
+	return internal.IsMessageObserver(rv)
+}
+
 func asMessageObserver(rv reflect.Value) internal.MessageObserver {
-	if rv.IsValid() {
-		if v, ok := rv.Convert(typeOfMessageObserver).Interface().(internal.MessageObserver); ok {
-			return v
-		}
-	}
-	return nil
+	return internal.AsMessageObserver(rv)
+}
+
+func isMessageFilterAffinity(rv reflect.Value) bool {
+	return internal.IsMessageFilterAffinity(rv)
+}
+
+func asMessageFilterAffinity(rv reflect.Value) internal.MessageFilterAffinity {
+	return internal.AsMessageFilterAffinity(rv)
 }
 
 func asRedisWorker(rv reflect.Value) *internal.RedisWorker {

@@ -172,6 +172,10 @@ func (c *Context) Status() StatusCode {
 	return GlobalContextHelper.ExtractReplyCode(c)
 }
 
+func (c *Context) Panic(fatalErr interface{}) {
+	panic(&FatalError{err: fatalErr})
+}
+
 func (c *Context) clone() *Context {
 	return &Context{
 		ConsumerGroup:         c.ConsumerGroup,

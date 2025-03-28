@@ -29,20 +29,52 @@ func AsMessageHandler(rv reflect.Value) MessageHandler {
 	return nil
 }
 
-func isRedisBusyGroupError(err error) bool {
-	return strings.HasPrefix(err.Error(), REDIS_BUSYGROUP_PREFIX)
-}
-
-func isMessageObserverAffair(rv reflect.Value) bool {
+func IsMessageObserver(rv reflect.Value) bool {
 	if rv.IsValid() {
-		return rv.Type().AssignableTo(typeOfMessageObserverAffair)
+		return rv.Type().AssignableTo(typeOfMessageObserver)
 	}
 	return false
 }
 
-func asMessageObserverAffair(rv reflect.Value) MessageObserverAffair {
+func AsMessageObserver(rv reflect.Value) MessageObserver {
 	if rv.IsValid() {
-		if v, ok := rv.Convert(typeOfMessageObserverAffair).Interface().(MessageObserverAffair); ok {
+		if v, ok := rv.Convert(typeOfMessageObserver).Interface().(MessageObserver); ok {
+			return v
+		}
+	}
+	return nil
+}
+
+func IsMessageFilterAffinity(rv reflect.Value) bool {
+	if rv.IsValid() {
+		return rv.Type().AssignableTo(typeOfMessageFilterAffinity)
+	}
+	return false
+}
+
+func AsMessageFilterAffinity(rv reflect.Value) MessageFilterAffinity {
+	if rv.IsValid() {
+		if v, ok := rv.Convert(typeOfMessageFilterAffinity).Interface().(MessageFilterAffinity); ok {
+			return v
+		}
+	}
+	return nil
+}
+
+func isRedisBusyGroupError(err error) bool {
+	return strings.HasPrefix(err.Error(), REDIS_BUSYGROUP_PREFIX)
+}
+
+func isMessageObserverAffinity(rv reflect.Value) bool {
+	if rv.IsValid() {
+		return rv.Type().AssignableTo(typeOfMessageObserverAffinity)
+	}
+	return false
+}
+
+func asMessageObserverAffinity(rv reflect.Value) MessageObserverAffinity {
+	if rv.IsValid() {
+		if v, ok := rv.Convert(typeOfMessageObserverAffinity).Interface().(MessageObserverAffinity); ok {
 			return v
 		}
 	}

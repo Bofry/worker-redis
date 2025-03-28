@@ -10,11 +10,15 @@ import (
 
 type ServiceProvider struct {
 	ResourceName string
+
+	TestStreamMessageCounter *TestStreamMessageCounter
 }
 
 func (p *ServiceProvider) Init(conf *Config) {
 	fmt.Println("ServiceProvider.Init()")
 	p.ResourceName = "demo resource"
+
+	p.TestStreamMessageCounter = new(TestStreamMessageCounter)
 }
 
 func (p *ServiceProvider) TracerProvider() *trace.SeverityTracerProvider {

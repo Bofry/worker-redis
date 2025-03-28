@@ -179,6 +179,7 @@ func TestStartup(t *testing.T) {
 			redis.UseMessageManager(&MessageManager{}),
 			redis.UseErrorHandler(func(ctx *redis.Context, message *redis.Message, err interface{}) {
 				t.Logf("catch err: %v", err)
+				app.ServiceProvider.TestStreamMessageCounter.IncreasePanicCount(ctx)
 			}),
 		).
 		ConfigureConfiguration(func(service *config.ConfigurationService) {
@@ -196,11 +197,9 @@ func TestStartup(t *testing.T) {
 		t.Error(err)
 	}
 
-	select {
-	case <-runCtx.Done():
-		if err := starter.Stop(context.Background()); err != nil {
-			t.Error(err)
-		}
+	<-runCtx.Done()
+	if err := starter.Stop(context.Background()); err != nil {
+		t.Error(err)
 	}
 
 	// assert app.Config
@@ -229,6 +228,109 @@ func TestStartup(t *testing.T) {
 		var expectedRedisClaimMinIdleTime time.Duration = 30 * time.Second
 		if conf.RedisClaimMinIdleTime != expectedRedisClaimMinIdleTime {
 			t.Errorf("assert 'Config.RedisClaimMinIdleTime':: expected '%v', got '%v'", expectedRedisClaimMinIdleTime, conf.RedisClaimMinIdleTime)
+		}
+
+		var expectedMessageCount = 9
+		if app.ServiceProvider.TestStreamMessageCounter.MessageCount != expectedMessageCount {
+			t.Errorf("assert 'MessageCount':: expected '%v', got '%v'", expectedMessageCount, app.ServiceProvider.TestStreamMessageCounter.MessageCount)
+		}
+		var expectedSuccessMessageCount = 6
+		if app.ServiceProvider.TestStreamMessageCounter.SuccessMessageCount != expectedSuccessMessageCount {
+			t.Errorf("assert 'SuccessMessageCount':: expected '%v', got '%v'", expectedSuccessMessageCount, app.ServiceProvider.TestStreamMessageCounter.SuccessMessageCount)
+		}
+		var expectedInvalidMessageCount = 2
+		if app.ServiceProvider.TestStreamMessageCounter.InvalidMessageCount != expectedInvalidMessageCount {
+			t.Errorf("assert 'InvalidMessageCount':: expected '%v', got '%v'", expectedInvalidMessageCount, app.ServiceProvider.TestStreamMessageCounter.InvalidMessageCount)
+		}
+		var expectedPanicCount = 1
+		if app.ServiceProvider.TestStreamMessageCounter.PanicCount != expectedPanicCount {
+			t.Errorf("assert 'PanicCount':: expected '%v', got '%v'", expectedPanicCount, app.ServiceProvider.TestStreamMessageCounter.PanicCount)
+		}
+	}
+}
+
+func TestStartup_MessageFilter(t *testing.T) {
+	type MessageManager struct {
+		GotestStream  *GoTestStreamFilterMessageHandler `stream:"gotestStream"   offset:"$"   @ExpandEnv:"off"`
+		GotestStream2 *GoTestStreamFilterMessageHandler `stream:"gotestStream2"  offset:"$"`
+		GotestStream3 *GoTestStreamMessageHandler       `stream:"gotestStream3"  offset:"$"`
+		GotestStream4 *GoTestStreamFilterMessageHandler `stream:"gotestStream4"  offset:"$"   @MessageStateKeyPrefix:"mystate:"`
+		GotestStream5 *GoTestStreamFilterMessageHandler `stream:"gotestStream5"  offset:"$"`
+		Invalid       *InvalidMessageHandler            `stream:"?"`
+	}
+
+	app := App{}
+	starter := redis.Startup(&app).
+		Middlewares(
+			redis.UseMessageManager(&MessageManager{}),
+			redis.UseErrorHandler(func(ctx *redis.Context, message *redis.Message, err interface{}) {
+				t.Logf("catch err: %v", err)
+				app.ServiceProvider.TestStreamMessageCounter.IncreasePanicCount(ctx)
+			}),
+		).
+		ConfigureConfiguration(func(service *config.ConfigurationService) {
+			service.
+				LoadEnvironmentVariables("").
+				LoadYamlFile("config.yaml").
+				LoadCommandArguments()
+
+			t.Logf("%+v\n", app.Config)
+		})
+
+	runCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := starter.Start(runCtx); err != nil {
+		t.Error(err)
+	}
+
+	<-runCtx.Done()
+	if err := starter.Stop(context.Background()); err != nil {
+		t.Error(err)
+	}
+
+	// assert app.Config
+	{
+		conf := app.Config
+		var expectedRedisAddresses []string = []string{__TEST_REDIS_SERVER}
+		if !reflect.DeepEqual(conf.RedisAddresses, expectedRedisAddresses) {
+			t.Errorf("assert 'Config.RedisAddress':: expected '%v', got '%v'", expectedRedisAddresses, conf.RedisAddresses)
+		}
+		var expectedRedisConsumerGroup string = "gotestGroup"
+		if conf.RedisConsumerGroup != expectedRedisConsumerGroup {
+			t.Errorf("assert 'Config.RedisConsumerGroup':: expected '%v', got '%v'", expectedRedisConsumerGroup, conf.RedisConsumerGroup)
+		}
+		var expectedRedisConsumerName string = "gotestConsumer"
+		if conf.RedisConsumerName != expectedRedisConsumerName {
+			t.Errorf("assert 'Config.RedisConsumerName':: expected '%v', got '%v'", expectedRedisConsumerName, conf.RedisConsumerName)
+		}
+		var expectedRedisMaxInFlight int64 = 8
+		if conf.RedisMaxInFlight != expectedRedisMaxInFlight {
+			t.Errorf("assert 'Config.RedisMaxInFlight':: expected '%v', got '%v'", expectedRedisMaxInFlight, conf.RedisMaxInFlight)
+		}
+		var expectedRedisMaxPollingTimeout time.Duration = 10 * time.Millisecond
+		if conf.RedisMaxPollingTimeout != expectedRedisMaxPollingTimeout {
+			t.Errorf("assert 'Config.RedisMaxPollingTimeout':: expected '%v', got '%v'", expectedRedisMaxPollingTimeout, conf.RedisMaxPollingTimeout)
+		}
+		var expectedRedisClaimMinIdleTime time.Duration = 30 * time.Second
+		if conf.RedisClaimMinIdleTime != expectedRedisClaimMinIdleTime {
+			t.Errorf("assert 'Config.RedisClaimMinIdleTime':: expected '%v', got '%v'", expectedRedisClaimMinIdleTime, conf.RedisClaimMinIdleTime)
+		}
+
+		var expectedMessageCount = 8
+		if app.ServiceProvider.TestStreamMessageCounter.MessageCount != expectedMessageCount {
+			t.Errorf("assert 'MessageCount':: expected '%v', got '%v'", expectedMessageCount, app.ServiceProvider.TestStreamMessageCounter.MessageCount)
+		}
+		var expectedSuccessMessageCount = 5
+		if app.ServiceProvider.TestStreamMessageCounter.SuccessMessageCount != expectedSuccessMessageCount {
+			t.Errorf("assert 'SuccessMessageCount':: expected '%v', got '%v'", expectedSuccessMessageCount, app.ServiceProvider.TestStreamMessageCounter.SuccessMessageCount)
+		}
+		var expectedInvalidMessageCount = 2
+		if app.ServiceProvider.TestStreamMessageCounter.InvalidMessageCount != expectedInvalidMessageCount {
+			t.Errorf("assert 'InvalidMessageCount':: expected '%v', got '%v'", expectedInvalidMessageCount, app.ServiceProvider.TestStreamMessageCounter.InvalidMessageCount)
+		}
+		var expectedPanicCount = 1
+		if app.ServiceProvider.TestStreamMessageCounter.PanicCount != expectedPanicCount {
+			t.Errorf("assert 'PanicCount':: expected '%v', got '%v'", expectedPanicCount, app.ServiceProvider.TestStreamMessageCounter.PanicCount)
 		}
 	}
 }
@@ -265,58 +367,56 @@ func TestStartup_UseTracing(t *testing.T) {
 		t.Error(err)
 	}
 
-	select {
-	case <-runCtx.Done():
-		if err := starter.Stop(context.Background()); err != nil {
+	<-runCtx.Done()
+	if err := starter.Stop(context.Background()); err != nil {
+		t.Error(err)
+	}
+
+	testEndAt := time.Now()
+
+	// wait 2 seconds
+	time.Sleep(2 * time.Second)
+
+	var queryUrl = fmt.Sprintf(
+		"%s?end=%d&limit=50&lookback=1h&&service=redis-trace-demo&start=%d",
+		app.Config.JaegerQueryUrl,
+		testEndAt.UnixMicro(),
+		testStartAt.UnixMicro())
+
+	t.Log(queryUrl)
+	req, err := http.NewRequest("GET", queryUrl, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Error(err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("assert query 'Jeager Query Url StatusCode':: expected '%v', got '%v'", 200, resp.StatusCode)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+	// t.Logf("%v", string(body))
+	// parse content
+	{
+		var reply map[string]interface{}
+		dec := json.NewDecoder(bytes.NewBuffer(body))
+		dec.UseNumber()
+		if err := dec.Decode(&reply); err != nil {
 			t.Error(err)
 		}
 
-		testEndAt := time.Now()
-
-		// wait 2 seconds
-		time.Sleep(2 * time.Second)
-
-		var queryUrl = fmt.Sprintf(
-			"%s?end=%d&limit=50&lookback=1h&&service=redis-trace-demo&start=%d",
-			app.Config.JaegerQueryUrl,
-			testEndAt.UnixMicro(),
-			testStartAt.UnixMicro())
-
-		t.Log(queryUrl)
-		req, err := http.NewRequest("GET", queryUrl, nil)
-		if err != nil {
-			t.Error(err)
+		data := reply["data"].([]interface{})
+		if data == nil {
+			t.Errorf("missing data section")
 		}
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Error(err)
-		}
-		if resp.StatusCode != 200 {
-			t.Errorf("assert query 'Jeager Query Url StatusCode':: expected '%v', got '%v'", 200, resp.StatusCode)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-		// t.Logf("%v", string(body))
-		// parse content
-		{
-			var reply map[string]interface{}
-			dec := json.NewDecoder(bytes.NewBuffer(body))
-			dec.UseNumber()
-			if err := dec.Decode(&reply); err != nil {
-				t.Error(err)
-			}
-
-			data := reply["data"].([]interface{})
-			if data == nil {
-				t.Errorf("missing data section")
-			}
-			var expectedDataLength int = 9
-			if expectedDataLength != len(data) {
-				t.Errorf("assert 'Jaeger Query size of replies':: expected '%v', got '%v'", expectedDataLength, len(data))
-			}
+		var expectedDataLength int = 9
+		if expectedDataLength != len(data) {
+			t.Errorf("assert 'Jaeger Query size of replies':: expected '%v', got '%v'", expectedDataLength, len(data))
 		}
 	}
 }

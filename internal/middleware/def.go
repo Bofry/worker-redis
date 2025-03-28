@@ -17,8 +17,7 @@ const (
 )
 
 var (
-	typeOfHost            = reflect.TypeOf(internal.RedisWorker{})
-	typeOfMessageObserver = reflect.TypeOf((*internal.MessageObserver)(nil)).Elem()
+	typeOfHost = reflect.TypeOf(internal.RedisWorker{})
 
 	NoopLoggingServiceSingleton = NoopLoggingService{}
 	NoopEventLogSingleton       = NoopEventLog(0)

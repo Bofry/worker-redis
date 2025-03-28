@@ -41,11 +41,14 @@ func TestRedisWorker(t *testing.T) {
 	handler := new(mockMessageHandler)
 	worker.alloc()
 	{
-		worker.messageDispatcher.StreamSet["gotestStream"] = StreamOffset{
-			Stream: "gotestStream",
-			Offset: redis.StreamNeverDeliveredOffset,
+		worker.messageDispatcher.StreamSet["gotestStream"] = ConsumerStream{
+			Stream:          "gotestStream",
+			LastDeliveredID: redis.StreamLastDeliveredID,
 		}
-		worker.messageDispatcher.Router.Add("gotestStream", handler, "", nil)
+		err = worker.messageDispatcher.Router.Add("gotestStream", handler, "", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	worker.init()
 
