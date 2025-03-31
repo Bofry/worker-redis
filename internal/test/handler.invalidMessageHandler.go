@@ -31,5 +31,5 @@ func (h *InvalidMessageHandler) ProcessMessage(ctx *redis.Context, message *redi
 
 	ctx.Logger().Printf("Invalid Message on %s: %v\n", message.Stream, message.XMessage)
 
-	h.counter.IncreaseInvalidMessageCount(ctx)
+	h.counter.IncreaseInvalidMessageCount(sp.Context())
 }

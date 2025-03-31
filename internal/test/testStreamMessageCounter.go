@@ -15,7 +15,7 @@ type TestStreamMessageCounter struct {
 
 func (c *TestStreamMessageCounter) IncreaseMessageCount(ctx context.Context) int {
 	tr := tracing.GetTracer(c)
-	sp := tr.Start(ctx, "increase()")
+	sp := tr.Start(ctx, "IncreaseMessageCount()")
 	defer sp.End()
 
 	c.MessageCount++
@@ -24,7 +24,7 @@ func (c *TestStreamMessageCounter) IncreaseMessageCount(ctx context.Context) int
 
 func (c *TestStreamMessageCounter) IncreaseSuccessMessageCount(ctx context.Context) int {
 	tr := tracing.GetTracer(c)
-	sp := tr.Start(ctx, "increase()")
+	sp := tr.Start(ctx, "IncreaseSuccessMessageCount()")
 	defer sp.End()
 
 	c.SuccessMessageCount++
@@ -33,7 +33,7 @@ func (c *TestStreamMessageCounter) IncreaseSuccessMessageCount(ctx context.Conte
 
 func (c *TestStreamMessageCounter) IncreaseInvalidMessageCount(ctx context.Context) int {
 	tr := tracing.GetTracer(c)
-	sp := tr.Start(ctx, "increase()")
+	sp := tr.Start(ctx, "IncreaseInvalidMessageCount()")
 	defer sp.End()
 
 	c.InvalidMessageCount++
@@ -42,7 +42,7 @@ func (c *TestStreamMessageCounter) IncreaseInvalidMessageCount(ctx context.Conte
 
 func (c *TestStreamMessageCounter) IncreasePanicCount(ctx context.Context) int {
 	tr := tracing.GetTracer(c)
-	sp := tr.Start(ctx, "increase()")
+	sp := tr.Start(ctx, "IncreasePanicCount()")
 	defer sp.End()
 
 	c.PanicCount++

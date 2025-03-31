@@ -46,7 +46,6 @@ var (
 	typeOfMessageHandler          = reflect.TypeOf((*MessageHandler)(nil)).Elem()
 	typeOfMessageObserver         = reflect.TypeOf((*MessageObserver)(nil)).Elem()
 	typeOfMessageObserverAffinity = reflect.TypeOf((*MessageObserverAffinity)(nil)).Elem()
-	typeOfMessageFilterAffinity   = reflect.TypeOf((*MessageFilterAffinity)(nil)).Elem()
 	defaultTracerProvider         = createNoopTracerProvider()
 	defaultTextMapPropagator      = createNoopTextMapPropagator()
 	defaultMessageDelegate        = NoopMessageDelegate(0)
@@ -101,10 +100,6 @@ type (
 
 	MessageHandler interface {
 		ProcessMessage(ctx *Context, message *Message)
-	}
-
-	MessageFilterAffinity interface {
-		Filter(message *Message) bool
 	}
 
 	MessageErrorHandler interface {

@@ -64,15 +64,7 @@ func (b *MessageManagerBinder) Bind(field structproto.FieldInfo, rv reflect.Valu
 		}
 	}
 
-	err = b.registerRoute(moduleID, stream, offset, setting, rvMessageHandler)
-	if err != nil {
-		return err
-	}
-	err = b.registerMessageFilter(stream, rvMessageHandler)
-	if err != nil {
-		return err
-	}
-	return nil
+	return b.registerRoute(moduleID, stream, offset, setting, rvMessageHandler)
 }
 
 // Deinit implements structproto.StructBinder.
@@ -110,19 +102,6 @@ func (b *MessageManagerBinder) registerRoute(moduleID, stream, offset string, se
 				if err != nil {
 					return err
 				}
-			}
-		}
-	}
-	return nil
-}
-
-func (b *MessageManagerBinder) registerMessageFilter(stream string, rv reflect.Value) error {
-	// register MessageFilters
-	if isMessageFilterAffinity(rv) {
-		handler := asMessageFilterAffinity(rv)
-		if handler != nil {
-			if !b.isUnknownStream(stream) {
-				b.registrar.AddMessageFilter(stream, handler)
 			}
 		}
 	}

@@ -19,7 +19,6 @@ import (
 var (
 	_ host.Host               = new(RedisWorker)
 	_ redis.MessageHandleProc = new(RedisWorker).receiveMessage
-	_ redis.MessageFilterProc = new(RedisWorker).filterMessage
 )
 
 type RedisWorker struct {
@@ -40,7 +39,6 @@ type RedisWorker struct {
 
 	messageDispatcher *MessageDispatcher
 	messageManager    interface{}
-	messageFilter     MessageFilter
 
 	messageHandleService   *MessageHandleService
 	messageTracerService   *MessageTracerService
@@ -135,7 +133,6 @@ func (w *RedisWorker) alloc() {
 
 	w.tracerManager = NewTraceManager()
 	w.messageHandleService = NewMessageHandleService()
-	w.messageFilter = make(MessageFilter)
 	w.messageTracerService = &MessageTracerService{
 		TracerManager: w.tracerManager,
 	}
@@ -231,7 +228,6 @@ func (w *RedisWorker) configConsumer() {
 		ClaimSensitivity:    w.ClaimSensitivity,
 		ClaimOccurrenceRate: w.ClaimOccurrenceRate,
 		MessageHandler:      w.receiveMessage,
-		MessageFilter:       w.filterMessage,
 		ErrorHandler:        w.onHostError,
 		Logger:              w.logger,
 	}
@@ -256,10 +252,6 @@ func (w *RedisWorker) receiveMessage(message *Message) {
 	delegate.configure(message)
 
 	w.messageDispatcher.ProcessMessage(ctx, message)
-}
-
-func (w *RedisWorker) filterMessage(message *Message) bool {
-	return w.messageFilter.Match(message)
 }
 
 func (w *RedisWorker) onHostError(err error) (disposed bool) {

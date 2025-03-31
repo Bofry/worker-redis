@@ -45,22 +45,6 @@ func AsMessageObserver(rv reflect.Value) MessageObserver {
 	return nil
 }
 
-func IsMessageFilterAffinity(rv reflect.Value) bool {
-	if rv.IsValid() {
-		return rv.Type().AssignableTo(typeOfMessageFilterAffinity)
-	}
-	return false
-}
-
-func AsMessageFilterAffinity(rv reflect.Value) MessageFilterAffinity {
-	if rv.IsValid() {
-		if v, ok := rv.Convert(typeOfMessageFilterAffinity).Interface().(MessageFilterAffinity); ok {
-			return v
-		}
-	}
-	return nil
-}
-
 func isRedisBusyGroupError(err error) bool {
 	return strings.HasPrefix(err.Error(), REDIS_BUSYGROUP_PREFIX)
 }

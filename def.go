@@ -31,7 +31,6 @@ type (
 
 	MessageObserver         = internal.MessageObserver
 	MessageObserverAffinity = internal.MessageObserverAffinity
-	MessageFilterAffinity   = internal.MessageFilterAffinity
 
 	MessageHandler      = internal.MessageHandler
 	MessageErrorHandler = internal.MessageErrorHandler
