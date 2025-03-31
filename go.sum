@@ -20,6 +20,8 @@ github.com/Bofry/lib-redis-stream v0.3.3-0.20250327162053-51de4ef3d86e h1:clL8Vc
 github.com/Bofry/lib-redis-stream v0.3.3-0.20250327162053-51de4ef3d86e/go.mod h1:TLC1bYh22ua+qGiqDFvWQiuemVEFsZKB3af5Q3hyf+w=
 github.com/Bofry/lib-redis-stream v0.3.3-0.20250331062541-8fa6fe862f0e h1:0rjrZjrNb7SeBqmcpQ0pFj5RdsF5q8hrP3LhwSq6F9U=
 github.com/Bofry/lib-redis-stream v0.3.3-0.20250331062541-8fa6fe862f0e/go.mod h1:TLC1bYh22ua+qGiqDFvWQiuemVEFsZKB3af5Q3hyf+w=
+github.com/Bofry/lib-redis-stream v0.3.3 h1:jf+KJvmvrVik8x2IiGkpNicatLHRJCKuCHfXjnZRuxA=
+github.com/Bofry/lib-redis-stream v0.3.3/go.mod h1:TLC1bYh22ua+qGiqDFvWQiuemVEFsZKB3af5Q3hyf+w=
 github.com/Bofry/structproto v0.2.1 h1:rcYqwH0dyEyAsfLsfejL/7YF9inIxnT/Y7uQfebPXWQ=
 github.com/Bofry/structproto v0.2.1/go.mod h1:j4dn8G1MhaBWHQBljNOkaDk8D5aW3Y/+Q/3hxQRNPKo=
 github.com/Bofry/trace v0.2.1 h1:EOPC21/6ckQ1EXCvUx7jD1pRBgLfjamzoQScuesQy2E=
